@@ -5,6 +5,42 @@ from tobin_process.utils import remove_special_char_vissim_col
 from tobin_process.utils import get_project_root
 import os
 
+def los_calc(delay):
+    los = ""
+    if delay <= 10:
+        los = "A"
+    elif (delay > 10) & (delay <= 20):
+        los = "B"
+    elif (delay > 20) & (delay <= 35):
+        los = "C"
+    elif (delay > 35) & (delay <= 55):
+        los = "D"
+    elif (delay > 55) & (delay <= 80):
+        los = "E"
+    elif delay > 80:
+        los = "F"
+    else:
+        los = ""
+    return los
+
+def los_calc_twsc(delay):
+    los = ""
+    if delay <= 10:
+        los = "A"
+    elif (delay > 10) & (delay <= 15):
+        los = "B"
+    elif (delay > 15) & (delay <= 25):
+        los = "C"
+    elif (delay > 25) & (delay <= 35):
+        los = "D"
+    elif (delay > 35) & (delay <= 50):
+        los = "E"
+    elif delay > 50:
+        los = "F"
+    else:
+        los = ""
+    return los
+
 class NodeEval:
     def __init__(self,
                  path_to_prj_,
@@ -25,6 +61,14 @@ class NodeEval:
         self.node_eval_mapper = pd.read_excel(
             path_to_mapper_node_eval_, sheet_name="vissim_report_convertion"
         )
+        self.node_no_node_type = (self.node_eval_mapper
+            .filter(items=["node_no", "node_type"])
+            .drop_duplicates(["node_no"])
+            .reset_index(drop=True)
+
+        )
+        self.node_no_node_type = self.node_no_node_type.set_index(
+            "node_no")["node_type"].to_dict()
         # Handle case when one direction for a node occurs more than once. For instance,
         # two NBR for a direction need to separated using to and from link names.
         if remove_duplicate_dir:
@@ -232,8 +276,23 @@ class NodeEval:
 
     def set_report_data(self, df_list):
         self.report_data = pd.concat(df_list)
+        self.report_data.node_type = self.report_data.node_no.replace(
+            self.node_no_node_type
+        )
 
     def set_los(self):
+        self.report_data = self.report_data.assign(
+            los=lambda df: np.select(
+                [
+                    df.node_type.str.lower() == "signalized",
+                    df.node_type.str.lower() == "twsc"
+                ],
+                [
+                    df.vehdelay_all.apply(los_calc),
+                    df.vehdelay_all.apply(los_calc_twsc)
+                ]
+            )
+        )
         # Todo: write this function
 
     def format_report_table(self, order_direction_results_, order_timeint_, results_cols_):
@@ -288,44 +347,6 @@ class NodeEval:
 
     def save_output_file(self):
         self.report_data_fil_pivot.to_excel(path_to_output_node_data)
-
-    def los_calc(delay):
-    LOS = ""
-    if Delay <= 10:
-        LOS = "A"
-    elif (Delay > 10) & (Delay <= 20):
-        LOS = "B"
-    elif (Delay > 20) & (Delay <= 35):
-        LOS = "C"
-    elif (Delay > 35) & (Delay <= 55):
-        LOS = "D"
-    elif (Delay > 55) & (Delay <= 80):
-        LOS = "E"
-    elif Delay > 80:
-        LOS = "F"
-    else:
-        LOS = ""
-    return LOS
-
-    def los_calc_twsc(delay):
-    LOS = ""
-    if Delay <= 10:
-        LOS = "A"
-    elif (Delay > 10) & (Delay <= 15):
-        LOS = "B"
-    elif (Delay > 15) & (Delay <= 25):
-        LOS = "C"
-    elif (Delay > 25) & (Delay <= 35):
-        LOS = "D"
-    elif (Delay > 35) & (Delay <= 50):
-        LOS = "E"
-    elif Delay > 50:
-        LOS = "F"
-    else:
-        LOS = ""
-    return LOS
-
-
 
 
 if __name__ == "__main__":
@@ -387,6 +408,8 @@ if __name__ == "__main__":
         ]
     )
 
+    node_eval_am.set_los()
+
     order_direction_results = [
         "NBR",
         "NBT",
@@ -439,6 +462,7 @@ if __name__ == "__main__":
         "qlenmax",
         "vehs_all",
         "vehdelay_all",
+        "los"
     ]
 
     node_eval_am.format_report_table(
