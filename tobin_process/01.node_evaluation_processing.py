@@ -2,109 +2,42 @@ import pandas as pd
 import os
 from pathlib import Path
 from tobin_process.utils import get_project_root
+import tobin_process.node_evaluation_helper as node_eval_helper  # noqa E402
 import inflection
 import numpy as np
 
-
-def LOS_Calc(Delay):
-    LOS = ""
-    if Delay <= 10:
-        LOS = "A"
-    elif (Delay > 10) & (Delay <= 20):
-        LOS = "B"
-    elif (Delay > 20) & (Delay <= 35):
-        LOS = "C"
-    elif (Delay > 35) & (Delay <= 55):
-        LOS = "D"
-    elif (Delay > 55) & (Delay <= 80):
-        LOS = "E"
-    elif Delay > 80:
-        LOS = "F"
-    else:
-        LOS = ""
-    return LOS
-
-
-def LOS_Calc_TWSC(Delay):
-    LOS = ""
-    if Delay <= 10:
-        LOS = "A"
-    elif (Delay > 10) & (Delay <= 15):
-        LOS = "B"
-    elif (Delay > 15) & (Delay <= 25):
-        LOS = "C"
-    elif (Delay > 25) & (Delay <= 35):
-        LOS = "D"
-    elif (Delay > 35) & (Delay <= 50):
-        LOS = "E"
-    elif Delay > 50:
-        LOS = "F"
-    else:
-        LOS = ""
-    return LOS
-
+path_to_prj = get_project_root()
+path_to_raw_data = os.path.join(path_to_prj, "data", "raw")
+path_to_interim_data = os.path.join(path_to_prj, "data", "interim")
+path_to_mappers_data = os.path.join(path_to_prj, "data", "mappers")
+path_to_mapper_node_eval = os.path.join(
+    path_to_mappers_data, "node_evaluation_vissim_report_mapping.xlsx"
+)
 
 if __name__ == "__main__":
-    path_to_prj = get_project_root()
-    path_to_raw_data = os.path.join(path_to_prj, "data", "raw")
-    path_to_interim_data = os.path.join(path_to_prj, "data", "interim")
-
-    path_to_mappers_data = os.path.join(path_to_prj, "data", "mappers")
-    path_to_mapper_node_eval = os.path.join(
-        path_to_mappers_data, "node_evaluation_vissim_report_mapping.xlsx"
-    )
-
-    path_to_node_eval_res = os.path.join(
+    path_to_node_eval_res_am = os.path.join(
         path_to_raw_data, "Tobin Bridge Base Model_Node Results.att"
     )
-    node_eval_mapper = pd.read_excel(
-        path_to_mapper_node_eval, sheet_name="vissim_report_convertion"
+    node_eval_am = node_eval_helper.NodeEval(
+        path_to_prj_=path_to_prj,
+        path_to_raw_data_=path_to_raw_data,
+        path_to_interim_data_=path_to_interim_data,
+        path_to_mapper_node_eval_=path_to_mapper_node_eval,
+        path_to_node_eval_res_=path_to_node_eval_res_am,
+        remove_duplicate_dir=False
     )
+
+
+
+
+
     node_eval_deduplicate = pd.read_excel(
         path_to_mapper_node_eval, sheet_name="deduplicate_movements"
     )
-    node_eval_res = pd.read_csv(path_to_node_eval_res, comment="*", sep=";", skiprows=1)
 
-    node_eval_res.columns = [
-        inflection.underscore(colnm)
-        .replace("$", "")
-        .replace(":", "_")
-        .replace("\\", "_")
-        .replace("(", "_")
-        .replace(")", "")
-        for colnm in node_eval_res.columns
-    ]
 
-    node_eval_res_avg = (
-        node_eval_res.loc[
-            lambda df: (
-                (df.movementevaluation_simrun == "AVG")
-                & (df.movement_fromlink_level.isin([1, np.nan]))
-            )
-        ]
-        .filter(
-            items=[
-                "movementevaluation_simrun",
-                "timeint",
-                "movement",
-                "movement_direction",
-                "movement_fromlink_level",
-                "qlen",
-                "qlenmax",
-                "vehs_all",
-                "vehdelay_all",
-            ]
-        )
-        .assign(
-            node_no=lambda df: df.movement.str.extract("(\d*).*?").astype(int),
-            from_link=lambda df: df.movement.str.extract(
-                "(?:[^:]*)?(?::\W?)?([^@]*)?"
-            ).transform(lambda x: x.str.strip()),
-            to_link=lambda df: df.movement.str.extract(
-                "(?:[^@]*)?(?:[^:]*)?(?::\W?)?([^@]*)?"
-            ).transform(lambda x: x.str.strip()),
-        )
-    )
+
+
 
     node_eval_deduplicate = node_eval_deduplicate.assign(
         from_link=lambda df: df.from_link.str.strip(),
@@ -159,7 +92,8 @@ if __name__ == "__main__":
         "NET (MA 3)",
         "NET",
         "NEL",
-        "NE" "EBR",
+        "NE",
+        "EBR",
         "EBT",
         "EBL",
         "EB",
@@ -227,12 +161,13 @@ if __name__ == "__main__":
     node_eval_res_avg_uniq_dir_report_dir_int = pd.concat(
         [node_eval_res_avg_uniq_dir_report_dir, node_eval_intersection_grp]
     )
+    node_eval_res_avg_uniq_dir_report_dir_int = node_eval_res_avg_uniq_dir_report_dir_int.loc[lambda df: ~ df.direction_results.isna()]
     order_timeint = ["900-4500", "4500-8100", "8100-11700", "11700-12600"]
     node_eval_res_avg_uniq_dir_report_dir_int_pivot = (
         node_eval_res_avg_uniq_dir_report_dir_int.assign(
             timeint=lambda df: pd.Categorical(df.timeint, order_timeint),
             direction_results=lambda df: pd.Categorical(
-                df.direction_results, order_direction_results
+                df.direction_results.str.strip(), order_direction_results
             ),
         )
         .sort_values(["timeint", "node_no", "direction_results"])
