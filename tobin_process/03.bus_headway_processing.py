@@ -1,64 +1,8 @@
 import pandas as pd
-import numpy as np
 import os
 import glob
-import inflection
-from tobin_process.utils import remove_special_char_vissim_col
 from tobin_process.utils import get_project_root
-import tobin_process.travel_time_seg_helper as tt_helper
-
-
-class BusHeadway(tt_helper.TtEval):
-    def __init__(
-        self,
-        path_to_prj_,
-        path_to_raw_data_,
-        path_to_interim_data_,
-        paths_tt_vissim_raw_,
-        path_to_mapper_bus_headway_,
-        path_to_output_headway_
-    ):
-        self.path_to_output_headway = path_to_output_headway_
-        self.tt_vissim_headway_grp = pd.DataFrame()
-        super().__init__(
-            path_to_prj_=path_to_prj_,
-            path_to_raw_data_=path_to_raw_data_,
-            path_to_interim_data_=path_to_interim_data_,
-            path_to_mapper_tt_seg_=path_to_mapper_bus_headway_,
-            paths_tt_vissim_raw_=paths_tt_vissim_raw_,
-            path_output_tt_="",
-            path_to_output_tt_fig_="",
-        )
-
-    def get_headway_stats(self):
-        tt_vissim_headway = (
-            self.tt_vissim_raw
-            .sort_values(["direction", "tt_seg_name", "veh_cls_res", "timeint", "time"])
-            .assign(
-                headway=lambda df:
-                df.groupby(["direction", "tt_seg_name", "veh_cls_res"])["time"].diff()
-            )
-            .filter(items=[
-                "direction", "tt_seg_name", "veh_cls_res", "timeint", "headway"])
-        )
-
-        self.tt_vissim_headway_grp = (
-            tt_vissim_headway
-            .groupby(["direction", "tt_seg_name", "veh_cls_res", "timeint"])
-            .agg(
-                avg_headway=("headway", "mean"),
-                min_headway=("headway", "min"),
-                q50_headway=("headway", lambda x: np.quantile(x, 0.5)),
-                q95_headway=("headway", lambda x: np.quantile(x, 0.95)),
-                max_headway=("headway", "max"),
-                std_dev_headway=("headway", "std"),
-                coeff_var_headway=("headway", lambda x: x.std() / x.mean()),
-            )
-            .reset_index()
-        )
-
-    def save_headway(self):
-        self.tt_vissim_headway_grp.to_excel(self.path_to_output_headway)
+import tobin_process.bus_headway_helper as bus_helper
 
 
 if __name__ == "__main__":
@@ -118,7 +62,7 @@ if __name__ == "__main__":
         "tot_people",
     ]
     keep_tt_segs = range(101, 106 + 1)
-    bus_headway_am = BusHeadway(
+    bus_headway_am = bus_helper.BusHeadway(
         path_to_prj_=path_to_prj,
         path_to_raw_data_=path_to_raw_data,
         path_to_interim_data_=path_to_interim_data,

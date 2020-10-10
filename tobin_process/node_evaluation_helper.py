@@ -113,9 +113,9 @@ class NodeEval:
         print("Update the list of columns to keep by using keep_cols_cor_nm variable")
 
     def read_node_eval(self):
-        # * is comment line. $ also means comment, but in pandas we can only use one character
-        # for denoting comment, so using skiprow=1 to skip the 1st row, which has a $ sign.
-        # 2nd and last $ sign is used with column name. Will address it below.
+        # * is comment line. $ also means comment, but in pandas we can only use one
+        # char for denoting comment, so using skiprow=1 to skip the 1st row, which has
+        # a $ sign. 2nd and last $ sign is used with column name. Will address it below.
         node_eval_res = pd.read_csv(
             self.path_to_node_eval_res, comment="*", sep=";", skiprows=1
         )
@@ -142,24 +142,23 @@ class NodeEval:
                     (df.movementevaluation_simrun.isin(self.keep_runs))
                     & (
                         df.movement_fromlink_level.isin(keep_movement_fromlink_level_)
-                    )  # 1 or empty cells are
-                    # for arterial roads.
+                    )  # 1 or empty cells are  for arterial roads.
                 )
             ]
             .filter(items=self.keep_cols_cor_nm)
             .assign(
-                node_no=lambda df: df.movement.str.extract("(\d*).*?").astype(int),
+                node_no=lambda df: df.movement.str.extract(r"(\d*).*?").astype(int),
                 from_link=lambda df: df.movement.str.extract(
-                    "(?:[^:]*)?(?::\W?)?([^@]*)?"
+                    r"(?:[^:]*)?(?::\W?)?([^@]*)?"
                 ).transform(lambda x: x.str.strip()),
                 to_link=lambda df: df.movement.str.extract(
-                    "(?:[^@]*)?(?:[^:]*)?(?::\W?)?([^@]*)?"
+                    r"(?:[^@]*)?(?:[^:]*)?(?::\W?)?([^@]*)?"
                 ).transform(lambda x: x.str.strip()),
             )
         )
 
     def add_report_directions(self):
-        if type(self.node_eval_deduplicate) == None:
+        if self.node_eval_deduplicate is None:
             self.node_eval_res_fil_uniq_dir = self.node_eval_res_fil.assign(
                 movement_direction_unique=lambda df: df.movement_direction
             ).drop(columns="movement_direction")
@@ -169,17 +168,18 @@ class NodeEval:
         self.node_eval_res_fil_uniq_dir = (
             self.node_eval_res_fil_uniq_dir.merge(
                 self.node_eval_mapper.assign(
-                    movement_direction_unique=lambda df: df.movement_direction_unique.str.strip()
+                    movement_direction_unique=lambda df:
+                    df.movement_direction_unique.str.strip()
                 ),
                 on=["node_no", "movement_direction_unique"],
                 how="left",
             )
             .loc[lambda df: df.movement_direction_unique != "Total"]
-            .assign(main_dir=lambda df: df.direction_results.str.extract("(\S{2})"),)
+            .assign(main_dir=lambda df: df.direction_results.str.extract(r"(\S{2})"),)
         )
 
     def test_deduplicate_has_correct_values(self):
-        if type(self.node_eval_deduplicate) == type(None):
+        if self.node_eval_deduplicate is None:
             print("No de-duplication data found or used.")
             return 1
         node_eval_deduplicate_test = self.node_eval_deduplicate.merge(
@@ -390,8 +390,8 @@ if __name__ == "__main__":
         "$MOVEMENTEVALUATION:SIMRUN",  # would need for all projects
         "TIMEINT",  # would need for all projects
         "MOVEMENT",  # would need for all projects
-        "MOVEMENT\DIRECTION",  # would need for all projects
-        "MOVEMENT\FROMLINK\LEVEL",  # would need for all projects
+        r"MOVEMENT\DIRECTION",  # would need for all projects
+        r"MOVEMENT\FROMLINK\LEVEL",  # would need for all projects
         "QLEN",
         "QLENMAX",
         "VEHS(ALL)",
