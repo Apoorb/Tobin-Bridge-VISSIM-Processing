@@ -7,6 +7,8 @@ import inflection
 import numpy as np
 
 if __name__ == "__main__":
+    # 1. Set the paths for input files and output files.
+    # ************************************************************************************
     path_to_prj = get_project_root()
     path_to_raw_data = os.path.join(path_to_prj, "data", "raw")
     path_to_interim_data = os.path.join(path_to_prj, "data", "interim")
@@ -15,24 +17,28 @@ if __name__ == "__main__":
         path_to_mappers_data, "node_evaluation_vissim_report_mapping.xlsx"
     )
     path_to_node_eval_res_am = os.path.join(
-        path_to_raw_data, "Tobin Bridge Base Model_Node Results.att"
+        path_to_raw_data, "Tobin Bridge Base Model - AM Peak Hour_Node Results.att"
     )
     path_to_output_node_data = os.path.join(
         path_to_interim_data, "process_node_eval.xlsx"
     )
 
+    # 2. Set columns to keep, direction order, time interval order, columns to include
+    # in results.
+    # ************************************************************************************
+    # Columns required for result processing.
     keep_cols = [
         "$MOVEMENTEVALUATION:SIMRUN",  # would need for all projects
         "TIMEINT",  # would need for all projects
         "MOVEMENT",  # would need for all projects
-        "MOVEMENT\DIRECTION",  # would need for all projects
-        "MOVEMENT\FROMLINK\LEVEL",  # would need for all projects
+        r"MOVEMENT\DIRECTION",  # would need for all projects
+        r"MOVEMENT\FROMLINK\LEVEL",  # would need for all projects
         "QLEN",
         "QLENMAX",
         "VEHS(ALL)",
         "VEHDELAY(ALL)",
     ]
-
+    # Sort order for the report directions.
     order_direction_results = [
         "NBR",
         "NBT",
@@ -79,35 +85,42 @@ if __name__ == "__main__":
         "NW",
         "Intersection",
     ]
-
+    # Sort order for the report time interval.
     order_timeint = ["900-4500", "4500-8100", "8100-11700", "11700-12600"]
+    order_timeint_labels_am = {
+        "900-4500": "6:00-7:00 am",
+        "4500-8100": "7:00-8:00 am",
+        "8100-11700": "8:00-9:00 am",
+        "11700-12600": "9:00-9:15 am"
+    }
+    # Sort order for the report results column.
+    results_cols = ["qlen", "qlenmax", "vehs_all", "vehdelay_all", "los"]
 
     node_eval_am = node_eval_helper.NodeEval(
-        path_to_prj_=path_to_prj,
-        path_to_raw_data_=path_to_raw_data,
-        path_to_interim_data_=path_to_interim_data,
         path_to_mapper_node_eval_=path_to_mapper_node_eval,
         path_to_node_eval_res_=path_to_node_eval_res_am,
         path_to_output_node_data_=path_to_output_node_data,
         remove_duplicate_dir=True,
     )
-
+    # filter rows and columns of the raw vissim node evaluation data.
+    # Assign unique directions to all movements.
     node_eval_am.clean_node_eval(
         keep_cols_=keep_cols,
         keep_runs_=["AVG"],
         keep_movement_fromlink_level_=[1, np.nan],
     )
-
+    # Print the filtered vissim node evaluation data.
     node_eval_am.node_eval_res_fil.head()
-
+    # Test if "node_evaluation_vissim_report_mapping.xlsx" , "deduplicate_movements" has
+    # same values as defined in VISSIM; doesn't have typos, space etc.
     node_eval_am.test_deduplicate_has_correct_values()
-
+    # Test that each direction in a node occur only one time.
     node_eval_am.test_unique_dir_per_node()
-
+    # Get delay by intersection
     node_eval_am.get_veh_delay_by_intersection()
-
+    # Get delay by approach.
     node_eval_am.get_veh_delay_by_approach()
-
+    # Concatenate data by direction, approach, and intersection.
     node_eval_am.set_report_data(
         df_list=[
             node_eval_am.node_eval_res_fil_uniq_dir,
@@ -115,33 +128,13 @@ if __name__ == "__main__":
             node_eval_am.node_approach_delay,
         ]
     )
-
+    # Get LOS based on the type of intersection.
     node_eval_am.set_los()
-
-    non_result_columns = [
-        "movementevaluation_simrun",
-        "timeint",
-        "movement",
-        "movement_fromlink_level",
-        "node_no",
-        "from_link",
-        "to_link",
-        "movement_direction_unique",
-        "direction_results",
-        "node_type",
-        "main_dir",
-    ]
-
-    result_cols = set(node_eval_am.report_data.columns) - set(non_result_columns)
-    # {'los', 'qlen', 'qlenmax', 'vehdelay_all', 'vehs_all'}
-
-    print(f"Choose result columns from the following: {result_cols}")
-    results_cols = ["qlen", "qlenmax", "vehs_all", "vehdelay_all", "los"]
-
+    # Format report table using multi-index.
     node_eval_am.format_report_table(
         order_direction_results_=order_direction_results,
         order_timeint_=order_timeint,
         results_cols_=results_cols,
+        order_timeint_label_=order_timeint_labels_am,
     )
-
     node_eval_am.save_output_file()

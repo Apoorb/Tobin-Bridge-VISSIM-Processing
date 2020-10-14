@@ -4,8 +4,9 @@ import glob
 from tobin_process.utils import get_project_root
 import tobin_process.bus_headway_helper as bus_helper
 
-
 if __name__ == "__main__":
+    # 1. Set the paths for input files and output files.
+    # ************************************************************************************
     path_to_prj = get_project_root()
     path_to_raw_data = os.path.join(path_to_prj, "data", "raw")
     path_to_interim_data = os.path.join(path_to_prj, "data", "interim")
@@ -17,41 +18,31 @@ if __name__ == "__main__":
         os.path.join(path_to_raw_data, "AM_Raw Travel Time", "*.rsr")
     )
     path_to_output_headway = os.path.join(path_to_interim_data, "process_headway.xlsx")
-
+    # 2. Set time interval, time interval labels, report vehicle classes mapping to
+    # vehicle types, occupancy by vissim vehicle type, results column to retain,
+    # travel time segments to keep.
+    # in results.
+    # ************************************************************************************
+    # Vissim time intervals
     order_timeint = [
         "900-4500",
         "4500-8100",
         "8100-11700",
         "11700-12600",
     ]
-
-    order_timeint_labels = [
-        "6:00-7:00",
-        "7:00-8:00",
-        "8:00-9:00",
-        "9:00-9:15"
-    ]
-
-    order_timeint_labels_pm = [
-        "4:00-5:00",
-        "5:00-6:00",
-        "6:00-7:00",
-        "7:00-7:15"
-    ]
-    order_timeint_intindex = pd.IntervalIndex.from_tuples(
-        [
-            (int(timeint.split("-")[0]), int(timeint.split("-")[1]))
-            for timeint in order_timeint
-        ],
-        closed="left",
-    )
-
+    # Vissim time interval labels for am.
+    order_timeint_labels_am = ["6:00-7:00", "7:00-8:00", "8:00-9:00", "9:00-9:15"]
+    # Vissim time interval labels for pm.
+    order_timeint_labels_pm = ["4:00-5:00", "5:00-6:00", "6:00-7:00", "7:00-7:15"]
+    # Report vehicle classes and corresponding vissim vehicle types.
     veh_types_res_cls = {
         "bus": [300],
     }
-
+    # Occupany by vissim vehicle types.
     veh_types_occupancy = {100: 1, 200: 1, 300: 60}
+    # Columns to keep.
     keep_cols = ["time", "no", "veh", "veh_type", "trav", "delay", "dist"]
+    # Result columns.
     results_cols = [
         "avg_trav",
         "avg_speed",
@@ -61,25 +52,27 @@ if __name__ == "__main__":
         "tot_veh",
         "tot_people",
     ]
+    # Result travel time segment number to be retained in the output.
+    # [101, 102, 103, 104, 105, 106]
     keep_tt_segs = range(101, 106 + 1)
+
     bus_headway_am = bus_helper.BusHeadway(
-        path_to_prj_=path_to_prj,
-        path_to_raw_data_=path_to_raw_data,
-        path_to_interim_data_=path_to_interim_data,
         paths_tt_vissim_raw_=paths_tt_vissim_raw,
         path_to_mapper_bus_headway_=path_to_mapper_bus_headway,
-        path_to_output_headway_=path_to_output_headway
+        path_to_output_headway_=path_to_output_headway,
     )
-
+    # Read the raw rsr files, filter rows and columns, combine data from different runs
+    # and get summary statistics for each simulation run.
     bus_headway_am.read_rsr_tt(
-        order_timeint_intindex_=order_timeint_intindex,
-        order_timeint_labels_=order_timeint_labels,
+        order_timeint_=order_timeint,
+        order_timeint_labels_=order_timeint_labels_am,
         veh_types_occupancy_=veh_types_occupancy,
         veh_types_res_cls_=veh_types_res_cls,
         keep_cols_=keep_cols,
         keep_tt_segs_=keep_tt_segs,
     )
-
+    # Add travel time segment name and direction to the raw data for each simulation
+    # run.
     bus_headway_am.merge_mapper()
     bus_headway_am.get_headway_stats()
     bus_headway_am.save_headway()

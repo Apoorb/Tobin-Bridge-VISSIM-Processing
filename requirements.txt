@@ -14,3 +14,8 @@ black
 openpyxl==3.0.5
 ipython==7.18.1
 seaborn
+plotly
+nbformat
+psutil
+requests
+python-kaleido==0.0.3
