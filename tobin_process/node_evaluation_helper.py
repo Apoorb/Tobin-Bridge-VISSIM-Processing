@@ -1,4 +1,3 @@
-import inflection
 import pandas as pd
 import numpy as np
 from tobin_process.utils import remove_special_char_vissim_col
@@ -161,10 +160,16 @@ class NodeEval:
         if type(keep_runs_) == str:
             self.keep_runs = [keep_runs_]
         else:
-            self.keep_runs = keep_runs_
+            self.keep_runs = [str(i) for i in keep_runs_]
+        self.test_run_present()
         # Filter to relevant columns and simulation runs (e.g. 1, 2, "AVG")
         self.filter_to_relevant_cols_rows(keep_movement_fromlink_level_)
         self.add_report_directions()
+
+    def test_run_present(self):
+        assert self.node_eval_res.movementevaluation_simrun.isin(self.keep_runs).any(), (
+            f"No data found for run {self.keep_runs}"
+        )
 
     def filter_to_relevant_cols_rows(self, keep_movement_fromlink_level_):
         """
@@ -386,14 +391,20 @@ class NodeEval:
                     df.node_type.str.lower() == "signalized",
                     df.node_type.str.lower() == "twsc",
                 ],
-                [df.vehdelay_all.apply(los_calc_signal),
-                 df.vehdelay_all.apply(los_calc_twsc)],
+                [
+                    df.vehdelay_all.apply(los_calc_signal),
+                    df.vehdelay_all.apply(los_calc_twsc),
+                ],
             )
         )
         # Todo: write this function
 
     def format_report_table(
-        self, order_direction_results_, order_timeint_, results_cols_, order_timeint_label_
+        self,
+        order_direction_results_,
+        order_timeint_,
+        results_cols_,
+        order_timeint_label_,
     ):
         """
 
@@ -545,7 +556,7 @@ if __name__ == "__main__":
         "900-4500": "6:00-7:00 am",
         "4500-8100": "7:00-8:00 am",
         "8100-11700": "8:00-9:00 am",
-        "11700-12600": "9:00-9:15 am"
+        "11700-12600": "9:00-9:15 am",
     }
     # Sort order for the report results column.
     results_cols = ["qlen", "qlenmax", "vehs_all", "vehdelay_all", "los"]
