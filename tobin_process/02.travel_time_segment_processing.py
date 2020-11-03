@@ -76,7 +76,6 @@ if __name__ == "__main__":
         "6:45-7:00",
         "7:00-7:15",
     ]
-
     # Report vehicle classes and corresponding vissim vehicle types.
     veh_types_res_cls = {
         "car": [100],

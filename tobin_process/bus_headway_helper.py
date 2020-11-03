@@ -37,9 +37,18 @@ class BusHeadway(tt_helper.TtEval):
         Get headway statistics by using the data from all vissim runs.
         """
         # Get headway by individual vissim run.
+        # TODO: Figure out the aggregation variables. Should we use veh_type or
+        #  veh_cls_res?
         tt_vissim_headway = (
             self.tt_vissim_raw.sort_values(
-                ["counter", "direction", "tt_seg_name", "veh_cls_res", "timeint", "time"]
+                [
+                    "counter",
+                    "direction",
+                    "tt_seg_name",
+                    "veh_cls_res",
+                    "timeint",
+                    "time",
+                ]
             )
             .assign(
                 headway=lambda df: df.groupby(
@@ -47,12 +56,14 @@ class BusHeadway(tt_helper.TtEval):
                 )["time"].diff()
             )
             .filter(
-                items=["counter",
-                       "direction",
-                       "tt_seg_name",
-                       "veh_cls_res",
-                       "timeint",
-                       "headway"]
+                items=[
+                    "counter",
+                    "direction",
+                    "tt_seg_name",
+                    "veh_cls_res",
+                    "timeint",
+                    "headway",
+                ]
             )
         )
         # Get aggregate statistics for headway across all vissim runs.

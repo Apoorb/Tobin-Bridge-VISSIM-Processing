@@ -102,12 +102,10 @@ if __name__ == "__main__":
         keep_runs_=keep_runs,
         keep_cols_=keep_cols,
         order_timeint_=order_timeint,
-        order_timeint_labels_=order_timeint_labels_am
+        order_timeint_labels_=order_timeint_labels_am,
     )
     link_seg_am.merge_link_mapper()
 
-    link_seg_am.plot_heatmaps(plot_var="speed_1020",
-                              color_lab="Speed (mph)")
+    link_seg_am.plot_heatmaps(plot_var="speed_1020", color_lab="Speed (mph)")
 
-    link_seg_am.plot_heatmaps(plot_var="density_1020",
-                              color_lab="Density (veh/mi)")
+    link_seg_am.plot_heatmaps(plot_var="density_1020", color_lab="Density (veh/mi)")

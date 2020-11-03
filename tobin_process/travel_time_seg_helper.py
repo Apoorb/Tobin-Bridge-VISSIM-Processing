@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 
 class TtEval:
     def __init__(
-                self,
-                path_to_mapper_tt_seg_,
-                paths_tt_vissim_raw_,
-                path_output_tt_,
-                path_to_output_tt_fig_,
+        self,
+        path_to_mapper_tt_seg_,
+        paths_tt_vissim_raw_,
+        path_output_tt_,
+        path_to_output_tt_fig_,
     ):
         """
         Parameters

@@ -91,7 +91,7 @@ if __name__ == "__main__":
         "900-4500": "6:00-7:00 am",
         "4500-8100": "7:00-8:00 am",
         "8100-11700": "8:00-9:00 am",
-        "11700-12600": "9:00-9:15 am"
+        "11700-12600": "9:00-9:15 am",
     }
     # Sort order for the report results column.
     results_cols = ["qlen", "qlenmax", "vehs_all", "vehdelay_all", "los"]
@@ -104,9 +104,10 @@ if __name__ == "__main__":
     )
     # filter rows and columns of the raw vissim node evaluation data.
     # Assign unique directions to all movements.
+    # Check if you actually have the results for the run you are trying to evaluate.
     node_eval_am.clean_node_eval(
         keep_cols_=keep_cols,
-        keep_runs_=["AVG"],
+        keep_runs_=[1],
         keep_movement_fromlink_level_=[1, np.nan],
     )
     # Print the filtered vissim node evaluation data.

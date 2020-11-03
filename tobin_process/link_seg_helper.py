@@ -9,11 +9,12 @@ pio.renderers.default = "browser"
 
 
 class LinkSegEval:
-    def __init__(self,
-                 path_to_mapper_link_seg_,
-                 path_link_seg_vissim_,
-                 path_to_output_link_seg_fig_,
-                 ):
+    def __init__(
+        self,
+        path_to_mapper_link_seg_,
+        path_link_seg_vissim_,
+        path_to_output_link_seg_fig_,
+    ):
         """
         Parameters
         ----------
@@ -65,7 +66,7 @@ class LinkSegEval:
 
     def clean_filter_link_eval(
         self, keep_runs_, keep_cols_, order_timeint_, order_timeint_labels_
-        ):
+    ):
         """
         Filter rows and columns of the raw vissim node evaluation data.
         Assign unique directions to all movements.
@@ -98,11 +99,8 @@ class LinkSegEval:
             .filter(items=keep_cols_ + ["link", "st_pt", "end_pt"])
         )
 
-        self.link_seg_vissim_fil.timeint = (
-            self.link_seg_vissim_fil.timeint.cat
-            .rename_categories(
-                {i: j for (i, j) in zip(order_timeint_, order_timeint_labels_)}
-            )
+        self.link_seg_vissim_fil.timeint = self.link_seg_vissim_fil.timeint.cat.rename_categories(
+            {i: j for (i, j) in zip(order_timeint_, order_timeint_labels_)}
         )
 
     def merge_link_mapper(self):
@@ -121,9 +119,7 @@ class LinkSegEval:
             ]
         )
 
-    def plot_heatmaps(self,
-                      plot_var,
-                      color_lab):
+    def plot_heatmaps(self, plot_var, color_lab):
         """
         Parameters
         ----------
@@ -296,12 +292,10 @@ if __name__ == "__main__":
         keep_runs_=keep_runs,
         keep_cols_=keep_cols,
         order_timeint_=order_timeint,
-        order_timeint_labels_=order_timeint_labels_am
+        order_timeint_labels_=order_timeint_labels_am,
     )
     link_seg_am.merge_link_mapper()
 
-    link_seg_am.plot_heatmaps(plot_var="speed_1020",
-                              color_lab="Speed (mph)")
+    link_seg_am.plot_heatmaps(plot_var="speed_1020", color_lab="Speed (mph)")
 
-    link_seg_am.plot_heatmaps(plot_var="density_1020",
-                              color_lab="Density (veh/mi)")
+    link_seg_am.plot_heatmaps(plot_var="density_1020", color_lab="Density (veh/mi)")
