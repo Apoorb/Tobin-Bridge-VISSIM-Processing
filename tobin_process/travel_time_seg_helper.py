@@ -35,8 +35,6 @@ class TtEval:
         self.veh_types_res_cls_df = pd.DataFrame()
         self.tt_mapper = pd.read_excel(path_to_mapper_tt_seg_)
         self.tt_vissim_raw = pd.DataFrame()
-        self.tt_vissim_raw_grps = pd.DataFrame()
-        self.tt_vissim_raw_grps_ttname = pd.DataFrame()
         self.tt_vissim_raw_grps_ttname_agg = pd.DataFrame()
 
     def read_rsr_tt(
@@ -131,47 +129,14 @@ class TtEval:
                 self.veh_types_res_cls_df, on="veh_type", how="left"
             )
             list_tt_vissim_raw.append(tt_vissim_raw)
-            # First level of aggregation within a simulation run.
-            tt_vissim_raw_grp = (
-                tt_vissim_raw.groupby(["timeint", "veh_cls_res", "no"])
-                .agg(
-                    avg_veh_delay=("veh_delay", "mean"),
-                    avg_person_delay=("person_delay", "mean"),
-                    tot_veh=("veh_count", "sum"),
-                    tot_people=("veh_type_occupancy", "sum"),
-                    avg_trav=("trav", "mean"),
-                    q95_trav=("trav", lambda x: np.quantile(x, 0.95)),
-                    avg_speed=("speed", "mean"),
-                )
-                .reset_index()
-            )
-            list_tt_vissim_raw_grp.append(tt_vissim_raw_grp)
             counter = counter + 1
         self.tt_vissim_raw = pd.concat(list_tt_vissim_raw).reset_index()
-        self.tt_vissim_raw_grps = pd.concat(list_tt_vissim_raw_grp).reset_index()
 
     def merge_mapper(self):
         """
         Add travel time segment names and direction to self.tt_vissim_raw .
         """
         self.tt_vissim_raw = self.tt_vissim_raw.merge(
-            self.tt_mapper, left_on="no", right_on="tt_seg_no", how="right"
-        ).assign(
-            tt_seg_name=lambda df: pd.Categorical(
-                df.tt_seg_name, self.tt_mapper.tt_seg_name.values, ordered=True
-            ),
-            direction=lambda df: pd.Categorical(
-                df.direction,
-                self.tt_mapper.direction.drop_duplicates().values,
-                ordered=True,
-            ),
-        )
-
-    def merge_mapper_grp(self):
-        """
-        Add travel time segment names and direction to self.tt_vissim_raw_grps .
-        """
-        self.tt_vissim_raw_grps_ttname = self.tt_vissim_raw_grps.merge(
             self.tt_mapper, left_on="no", right_on="tt_seg_no", how="right"
         ).assign(
             tt_seg_name=lambda df: pd.Categorical(
@@ -199,20 +164,18 @@ class TtEval:
         Aggregate travel time features. Reformat data to report format.
         """
         self.tt_vissim_raw_grps_ttname_agg = (
-            self.tt_vissim_raw_grps_ttname.groupby(
-                ["timeint", "tt_seg_name", "veh_cls_res"]
-            )
-            .agg(
-                tot_veh=("tot_veh", "mean"),
-                tot_people=("tot_people", "mean"),
-                avg_veh_delay=("avg_veh_delay", "mean"),
-                avg_person_delay=("avg_person_delay", "mean"),
-                avg_trav=("avg_trav", "mean"),
-                q95_trav=("q95_trav", "mean"),
-                avg_speed=("avg_speed", "mean"),
+            self.tt_vissim_raw.groupby(["timeint", "tt_seg_name", "veh_cls_res"])
+                .agg(
+                avg_veh_delay=("veh_delay", "mean"),
+                avg_person_delay=("person_delay", "mean"),
+                tot_veh=("veh_count", "sum"),
+                tot_people=("veh_type_occupancy", "sum"),
+                avg_trav=("trav", "mean"),
+                q95_trav=("trav", lambda x: np.quantile(x, 0.95)),
+                avg_speed=("speed", "mean"),
+                avg_dist_ft=('dist_ft', "mean"),
                 direction=("direction", "first"),
             )
-            .reset_index()
             .assign(
                 tot_veh=lambda df: df.tot_veh.round(2),
                 tot_people=lambda df: df.tot_people.round(2),
@@ -222,7 +185,9 @@ class TtEval:
                 avg_delay=lambda df: df.avg_veh_delay.round(2),
                 avg_person_delay=lambda df: df.avg_person_delay.round(2),
                 avg_veh_delay=lambda df: df.avg_veh_delay.round(2),
+                avg_speed_from_tt=lambda df: np.round(df.avg_dist_ft / df.avg_trav / 1.47, 2),
             )
+            .reset_index()
             .set_index(["timeint", "direction", "tt_seg_name", "veh_cls_res"])
             .filter(items=results_cols_)
             .sort_index()
@@ -243,7 +208,7 @@ class TtEval:
         """
         self.tt_vissim_raw_grps_ttname_agg.to_excel(self.path_output_tt)
 
-    def plot_heatmaps(self):
+    def plot_heatmaps(self, var="avg_speed_from_tt"):
         """
         Plot speed data.
         """
@@ -257,7 +222,7 @@ class TtEval:
                     "direction",
                     "tt_seg_name",
                     "timeint",
-                    "avg_speed",
+                    var
                 ]
             )
         )
@@ -265,7 +230,7 @@ class TtEval:
         sns.set(font_scale=1.2)
         for name, group in plot_df_grp:
             plot_df_grp_fil = pd.pivot_table(
-                group, values="avg_speed", index="timeint", columns="tt_seg_name"
+                group, values=var, columns="timeint", index="tt_seg_name"
             )
             plot_df_grp_fil = plot_df_grp_fil.sort_index(ascending=False)
             color_bar_ = "viridis"
@@ -280,8 +245,8 @@ class TtEval:
                 ax=ax,
             )
             g.set_xticklabels(rotation=30, labels=g.get_xticklabels(), ha="right")
-            g.set_xlabel("")
-            g.set_ylabel("Time Interval")
+            g.set_ylabel("")
+            g.set_xlabel("Time Interval")
             path_to_output_tt_fig_filenm = os.path.join(
                 self.path_to_output_tt_fig, "_".join([name[0], name[1], ".jpg"])
             )
@@ -316,8 +281,6 @@ if __name__ == "__main__":
     # ************************************************************************************
     # Vissim time intervals
     order_timeint = [
-        "900-1800",
-        "1800-2700",
         "2700-3600",
         "3600-4500",
         "4500-5400",
@@ -329,6 +292,8 @@ if __name__ == "__main__":
         "9900-10800",
         "10800-11700",
         "11700-12600",
+        "12600-13500",
+        "13500-14400",
     ]
     # Vissim time interval labels.
     order_timeint_labels_am = [
@@ -364,11 +329,7 @@ if __name__ == "__main__":
     ]
     # Report vehicle classes and corresponding vissim vehicle types.
     veh_types_res_cls = {
-        "car": [100],
-        "hgv": [200],
-        "car_hgv": [100, 200],
-        "bus": [300],
-        "car_hgv_bus": [100, 200, 300],
+        "car_hgv_bus": [100, 200, 300, 301, 302, 303, 304, 305],
     }
     # Occupany by vissim vehicle types.
     veh_types_occupancy = {100: 1, 200: 1, 300: 60}
@@ -380,13 +341,15 @@ if __name__ == "__main__":
         "avg_speed",
         "q95_trav",
         "avg_veh_delay",
-        "avg_person_delay",
+        #"avg_person_delay",
         "tot_veh",
-        "tot_people",
+        #"tot_people",
+        "avg_speed_from_tt",
+        "avg_dist_ft"
     ]
     # Result travel time segment number to be retained in the output.
     # [1,2,3,4,5,6,7,8,9,10,11,12]
-    keep_tt_segs = range(1, 12 + 1)
+    keep_tt_segs = range(1, 99)
 
     tt_eval_am = TtEval(
         path_to_mapper_tt_seg_=path_to_mapper_tt_seg,
@@ -406,8 +369,8 @@ if __name__ == "__main__":
     )
     # Add travel time segment name and direction to the data with summary statistics for
     # each simulation run.
-    tt_eval_am.merge_mapper_grp()
+    tt_eval_am.merge_mapper()
     # Aggregate travel time results to get an average of all simulation runs.
     tt_eval_am.agg_tt(results_cols_=results_cols)
     tt_eval_am.save_tt_processed()
-    tt_eval_am.plot_heatmaps()
+    tt_eval_am.plot_heatmaps(var="avg_speed_from_tt")

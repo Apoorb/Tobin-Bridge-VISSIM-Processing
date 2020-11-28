@@ -30,8 +30,6 @@ if __name__ == "__main__":
     # ************************************************************************************
     # Vissim time intervals
     order_timeint = [
-        "900-1800",
-        "1800-2700",
         "2700-3600",
         "3600-4500",
         "4500-5400",
@@ -43,6 +41,8 @@ if __name__ == "__main__":
         "9900-10800",
         "10800-11700",
         "11700-12600",
+        "12600-13500",
+        "13500-14400",
     ]
     # Vissim time interval labels.
     order_timeint_labels_am = [
@@ -78,11 +78,7 @@ if __name__ == "__main__":
     ]
     # Report vehicle classes and corresponding vissim vehicle types.
     veh_types_res_cls = {
-        "car": [100],
-        "hgv": [200],
-        "car_hgv": [100, 200],
-        "bus": [300],
-        "car_hgv_bus": [100, 200, 300],
+        "car_hgv_bus": [100, 200, 300, 301, 302, 303, 304, 305],
     }
     # Occupany by vissim vehicle types.
     veh_types_occupancy = {100: 1, 200: 1, 300: 60}
@@ -91,16 +87,17 @@ if __name__ == "__main__":
     # Result columns.
     results_cols = [
         "avg_trav",
-        "avg_speed",
+        "avg_speed_from_tt",
+        "avg_dist_ft"
         "q95_trav",
         "avg_veh_delay",
-        "avg_person_delay",
+        #"avg_person_delay",
         "tot_veh",
-        "tot_people",
+        #"tot_people",
     ]
     # Result travel time segment number to be retained in the output.
     # [1,2,3,4,5,6,7,8,9,10,11,12]
-    keep_tt_segs = range(1, 12 + 1)
+    keep_tt_segs = range(1, 99)
 
     tt_eval_am = tt_helper.TtEval(
         path_to_mapper_tt_seg_=path_to_mapper_tt_seg,
@@ -120,8 +117,8 @@ if __name__ == "__main__":
     )
     # Add travel time segment name and direction to the data with summary statistics for
     # each simulation run.
-    tt_eval_am.merge_mapper_grp()
+    tt_eval_am.merge_mapper()
     # Aggregate travel time results to get an average of all simulation runs.
     tt_eval_am.agg_tt(results_cols_=results_cols)
     tt_eval_am.save_tt_processed()
-    tt_eval_am.plot_heatmaps()
+    tt_eval_am.plot_heatmaps(var="avg_speed_from_tt")
