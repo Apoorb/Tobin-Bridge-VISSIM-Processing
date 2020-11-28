@@ -551,12 +551,12 @@ if __name__ == "__main__":
         "Intersection",
     ]
     # Sort order for the report time interval.
-    order_timeint = ["900-4500", "4500-8100", "8100-11700", "11700-12600"]
+    order_timeint = ["2700-6300", "6300-9900", "9900-13500", "13500-14400"]
     order_timeint_labels_am = {
-        "900-4500": "6:00-7:00 am",
-        "4500-8100": "7:00-8:00 am",
-        "8100-11700": "8:00-9:00 am",
-        "11700-12600": "9:00-9:15 am",
+        "2700-6300": "6:00-7:00 am",
+        "6300-9900": "7:00-8:00 am",
+        "9900-13500": "8:00-9:00 am",
+        "13500-14400": "9:00-9:15 am",
     }
     # Sort order for the report results column.
     results_cols = ["qlen", "qlenmax", "vehs_all", "vehdelay_all", "los"]

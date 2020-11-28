@@ -17,7 +17,7 @@ if __name__ == "__main__":
         path_to_mappers_data, "node_evaluation_vissim_report_mapping.xlsx"
     )
     path_to_node_eval_res_am = os.path.join(
-        path_to_raw_data, "Tobin Bridge Base Model - AM Peak Hour_Node Results.att"
+        path_to_raw_data, "Tobin Bridge Base Model - AM Peak Hour V2_Node Results.att"
     )
     path_to_output_node_data = os.path.join(
         path_to_interim_data, "process_node_eval.xlsx"
@@ -86,12 +86,12 @@ if __name__ == "__main__":
         "Intersection",
     ]
     # Sort order for the report time interval.
-    order_timeint = ["900-4500", "4500-8100", "8100-11700", "11700-12600"]
+    order_timeint = ["2700-6300", "6300-9900", "9900-13500", "13500-14400"]
     order_timeint_labels_am = {
-        "900-4500": "6:00-7:00 am",
-        "4500-8100": "7:00-8:00 am",
-        "8100-11700": "8:00-9:00 am",
-        "11700-12600": "9:00-9:15 am",
+        "2700-6300": "6:00-7:00 am",
+        "6300-9900": "7:00-8:00 am",
+        "9900-13500": "8:00-9:00 am",
+        "13500-14400": "9:00-9:15 am",
     }
     # Sort order for the report results column.
     results_cols = ["qlen", "qlenmax", "vehs_all", "vehdelay_all", "los"]
@@ -107,9 +107,19 @@ if __name__ == "__main__":
     # Check if you actually have the results for the run you are trying to evaluate.
     node_eval_am.clean_node_eval(
         keep_cols_=keep_cols,
-        keep_runs_=[1],
+        keep_runs_=["AVG"],
         keep_movement_fromlink_level_=[1, np.nan],
     )
+    # Test if there are missing Vissim directions in the Mapper File
+    add_following_direction_to_mapper = (node_eval_am.node_eval_res_fil_uniq_dir
+        .query(
+            """
+            direction_results.isna()
+            """)
+        .drop_duplicates(["node_no", "direction_results"])
+    )
+    assert len(add_following_direction_to_mapper) == 0, "Add the above missing rows to " \
+                                                        "mapper."
     # Print the filtered vissim node evaluation data.
     node_eval_am.node_eval_res_fil.head()
     # Test if "node_evaluation_vissim_report_mapping.xlsx" , "deduplicate_movements" has
