@@ -227,14 +227,14 @@ class TtEval:
             )
         )
         plot_df_grp = plot_df.groupby(["veh_cls_res", "direction"])
-        sns.set(font_scale=1.2)
+        sns.set(font_scale=1.1)
         for name, group in plot_df_grp:
             plot_df_grp_fil = pd.pivot_table(
                 group, values=var, columns="timeint", index="tt_seg_name"
             )
             plot_df_grp_fil = plot_df_grp_fil.sort_index(ascending=False)
             color_bar_ = "viridis"
-            fig, ax = plt.subplots(1, figsize=(5, 5))
+            fig, ax = plt.subplots(1, figsize=(7, 2))
             g = sns.heatmap(
                 plot_df_grp_fil,
                 vmin=0,
@@ -243,8 +243,12 @@ class TtEval:
                 cmap=color_bar_,
                 linewidths=0.5,
                 ax=ax,
+                square=False
             )
+            if name[1] == "SB":
+                g.invert_yaxis()
             g.set_xticklabels(rotation=30, labels=g.get_xticklabels(), ha="right")
+            g.set_yticklabels(rotation=30, labels=g.get_yticklabels())
             g.set_ylabel("")
             g.set_xlabel("Time Interval")
             path_to_output_tt_fig_filenm = os.path.join(
