@@ -31,7 +31,6 @@ class LinkSegEval:
         # Mapper file to get link names.
         self.link_seg_mapper = pd.read_excel(self.path_to_mapper_link_seg)
         link_seg_vissim = self.read_link_seg()
-        self.test_seg_eval_len()
         self.link_seg_vissim_fil = pd.DataFrame()
         self.link_seg_vissim_fil_ord = pd.DataFrame()
 
@@ -61,7 +60,7 @@ class LinkSegEval:
         Test if the analyst has set the link evaluation length to correct value in vissim.
         """
         assert all(
-            self.link_seg_vissim.st_pt % eval_len == 0
+            self.link_seg_vissim_fil.st_pt % eval_len == 0
         ), f"Change link evaluation segment length to {eval_len} ft. in Vissim."
 
     def clean_filter_link_eval(
@@ -131,6 +130,7 @@ class LinkSegEval:
         plot_grps = self.link_seg_vissim_fil_ord.groupby(
             ["linkevalsegmentevaluation_simrun", "direction"]
         )
+
         for name, group in plot_grps:
             plot_grp_reshaped = (
                 pd.pivot_table(
@@ -172,21 +172,32 @@ class LinkSegEval:
                     colorbar_title=color_lab,
                 )
             )
-            # fig.update_layout(
-            #     height=2000,
-            #     width=2400,
-            #     margin=dict(l=1600),
-            #     autosize=False,
-            #     font=dict(size=24),
-            # )
-            # #fig.show()
+            if(name[1] == "SB"):
+                fig.update_layout(yaxis_autorange="reversed")
+            fig.update_layout(
+                height=1200,
+                width=2000,
+                margin=dict(l=1400,
+                            pad=10),
+                autosize=True,
+                font=dict(size=22),
+                plot_bgcolor='rgba(0,0,0,0)'
+            )
+            path_to_output_tt_fig_filenm_html = os.path.join(
+                self.path_to_output_link_seg_fig,
+                "_".join([str(name[0]), name[1], plot_var, ".html"]),
+            )
+            fig.write_html(path_to_output_tt_fig_filenm_html)
             fig.update_layout(
                 height=1600,
                 width=1600,
-                margin=dict(l=1200),
+                margin=dict(l=1200,
+                            pad=10),
                 autosize=False,
                 font=dict(size=22),
+                plot_bgcolor='rgba(0,0,0,0)'
             )
+
             path_to_output_tt_fig_filenm = os.path.join(
                 self.path_to_output_link_seg_fig,
                 "_".join([str(name[0]), name[1], plot_var, ".jpg"]),
@@ -206,7 +217,7 @@ if __name__ == "__main__":
     )
     path_link_seg_vissim = os.path.join(
         path_to_raw_data,
-        "Tobin Bridge Base Model - AM Peak Hour_Link Segment Results.att",
+        "Tobin Bridge Base Model - AM Peak Hour V2_Link Segment Results.att",
     )
     path_to_output_fig = os.path.join(path_to_interim_data, "figures")
     if not os.path.exists(path_to_output_fig):
@@ -287,13 +298,13 @@ if __name__ == "__main__":
         path_to_output_link_seg_fig_=path_to_output_link_seg_fig,
     )
     link_seg_am.read_link_seg()
-    link_seg_am.test_seg_eval_len()
     link_seg_am.clean_filter_link_eval(
         keep_runs_=keep_runs,
         keep_cols_=keep_cols,
         order_timeint_=order_timeint,
         order_timeint_labels_=order_timeint_labels_am,
     )
+    link_seg_am.test_seg_eval_len()
     link_seg_am.merge_link_mapper()
 
     link_seg_am.plot_heatmaps(plot_var="speed_1020", color_lab="Speed (mph)")

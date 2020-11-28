@@ -16,7 +16,7 @@ if __name__ == "__main__":
     )
     path_link_seg_vissim = os.path.join(
         path_to_raw_data,
-        "Tobin Bridge Base Model - AM Peak Hour_Link Segment Results.att",
+        "Tobin Bridge Base Model - AM Peak Hour V2_Link Segment Results.att",
     )
     path_to_output_fig = os.path.join(path_to_interim_data, "figures")
     if not os.path.exists(path_to_output_fig):
@@ -88,8 +88,8 @@ if __name__ == "__main__":
         "6:45-7:00",
         "7:00-7:15",
     ]
-    # Vissim runs to output result for.
-    keep_runs = [1]
+    # Vissim runs to output result for: 1,2, ... or "AVG".
+    keep_runs = ["AVG"]
 
     link_seg_am = link_helper.LinkSegEval(
         path_to_mapper_link_seg_=path_to_mapper_link_seg,
@@ -97,13 +97,15 @@ if __name__ == "__main__":
         path_to_output_link_seg_fig_=path_to_output_link_seg_fig,
     )
     link_seg_am.read_link_seg()
-    link_seg_am.test_seg_eval_len()
+    #Test if the analyst has set the link evaluation length to correct value in vissim.
     link_seg_am.clean_filter_link_eval(
         keep_runs_=keep_runs,
         keep_cols_=keep_cols,
         order_timeint_=order_timeint,
         order_timeint_labels_=order_timeint_labels_am,
     )
+    link_seg_am.test_seg_eval_len(eval_len=1000)
+
     link_seg_am.merge_link_mapper()
 
     link_seg_am.plot_heatmaps(plot_var="speed_1020", color_lab="Speed (mph)")
