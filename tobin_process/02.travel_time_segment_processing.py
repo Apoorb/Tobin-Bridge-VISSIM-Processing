@@ -88,12 +88,11 @@ if __name__ == "__main__":
     results_cols = [
         "avg_trav",
         "avg_speed_from_tt",
-        "avg_dist_ft"
-        "q95_trav",
+        "avg_dist_ft" "q95_trav",
         "avg_veh_delay",
-        #"avg_person_delay",
+        # "avg_person_delay",
         "tot_veh",
-        #"tot_people",
+        # "tot_people",
     ]
     # Result travel time segment number to be retained in the output.
     # [1,2,3,4,5,6,7,8,9,10,11,12]

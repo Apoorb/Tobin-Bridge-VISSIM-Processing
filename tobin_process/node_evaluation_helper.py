@@ -167,9 +167,9 @@ class NodeEval:
         self.add_report_directions()
 
     def test_run_present(self):
-        assert self.node_eval_res.movementevaluation_simrun.isin(self.keep_runs).any(), (
-            f"No data found for run {self.keep_runs}"
-        )
+        assert self.node_eval_res.movementevaluation_simrun.isin(
+            self.keep_runs
+        ).any(), f"No data found for run {self.keep_runs}"
 
     def filter_to_relevant_cols_rows(self, keep_movement_fromlink_level_):
         """

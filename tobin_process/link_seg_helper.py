@@ -171,19 +171,18 @@ class LinkSegEval:
                     colorbar_thickness=15,
                     colorbar_title=color_lab,
                     zmin=zmin,
-                    zmax=zmax
+                    zmax=zmax,
                 )
             )
-            if(name[1] == "SB"):
+            if name[1] == "SB":
                 fig.update_layout(yaxis_autorange="reversed")
             fig.update_layout(
                 height=1200,
                 width=2000,
-                margin=dict(l=1400,
-                            pad=10),
+                margin=dict(l=1400, pad=10),
                 autosize=True,
                 font=dict(size=22),
-                plot_bgcolor='rgba(0,0,0,0)'
+                plot_bgcolor="rgba(0,0,0,0)",
             )
             path_to_output_tt_fig_filenm_html = os.path.join(
                 self.path_to_output_link_seg_fig,
@@ -193,11 +192,10 @@ class LinkSegEval:
             fig.update_layout(
                 height=1600,
                 width=1800,
-                margin=dict(l=1200,
-                            pad=10),
+                margin=dict(l=1200, pad=10),
                 autosize=False,
                 font=dict(size=22),
-                plot_bgcolor='rgba(0,0,0,0)'
+                plot_bgcolor="rgba(0,0,0,0)",
             )
 
             path_to_output_tt_fig_filenm = os.path.join(
@@ -309,22 +307,16 @@ if __name__ == "__main__":
     link_seg_am.test_seg_eval_len()
     link_seg_am.merge_link_mapper()
     link_seg_am.plot_heatmaps(
-        plot_var="speed_1020",
-        color_lab="Speed (mph)",
-        zmin=10,
-        zmax=70)
+        plot_var="speed_1020", color_lab="Speed (mph)", zmin=10, zmax=70
+    )
 
-    link_seg_am.link_seg_vissim_fil_ord = (
-        link_seg_am.link_seg_vissim_fil_ord
-        .assign(
-            density_1020_by_ln=lambda df: df.density_1020
-                                          / df.linkevalsegment_link_numlanes
-        )
+    link_seg_am.link_seg_vissim_fil_ord = link_seg_am.link_seg_vissim_fil_ord.assign(
+        density_1020_by_ln=lambda df: df.density_1020 / df.linkevalsegment_link_numlanes
     )
     link_seg_am.plot_heatmaps(
         plot_var="density_1020_by_ln",
         color_lab="Density (veh/mi/ln)",
         zmin=0,
         zmax=120,
-        colorscale_="viridis_r"
+        colorscale_="viridis_r",
     )

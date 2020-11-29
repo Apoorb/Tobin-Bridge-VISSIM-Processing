@@ -165,7 +165,7 @@ class TtEval:
         """
         self.tt_vissim_raw_grps_ttname_agg = (
             self.tt_vissim_raw.groupby(["timeint", "tt_seg_name", "veh_cls_res"])
-                .agg(
+            .agg(
                 avg_veh_delay=("veh_delay", "mean"),
                 avg_person_delay=("person_delay", "mean"),
                 tot_veh=("veh_count", "sum"),
@@ -173,7 +173,7 @@ class TtEval:
                 avg_trav=("trav", "mean"),
                 q95_trav=("trav", lambda x: np.quantile(x, 0.95)),
                 avg_speed=("speed", "mean"),
-                avg_dist_ft=('dist_ft', "mean"),
+                avg_dist_ft=("dist_ft", "mean"),
                 direction=("direction", "first"),
             )
             .assign(
@@ -185,7 +185,9 @@ class TtEval:
                 avg_delay=lambda df: df.avg_veh_delay.round(2),
                 avg_person_delay=lambda df: df.avg_person_delay.round(2),
                 avg_veh_delay=lambda df: df.avg_veh_delay.round(2),
-                avg_speed_from_tt=lambda df: np.round(df.avg_dist_ft / df.avg_trav / 1.47, 2),
+                avg_speed_from_tt=lambda df: np.round(
+                    df.avg_dist_ft / df.avg_trav / 1.47, 2
+                ),
             )
             .reset_index()
             .set_index(["timeint", "direction", "tt_seg_name", "veh_cls_res"])
@@ -216,15 +218,7 @@ class TtEval:
             self.tt_vissim_raw_grps_ttname_agg.swaplevel(axis=1)
             .stack()
             .reset_index()
-            .filter(
-                items=[
-                    "veh_cls_res",
-                    "direction",
-                    "tt_seg_name",
-                    "timeint",
-                    var
-                ]
-            )
+            .filter(items=["veh_cls_res", "direction", "tt_seg_name", "timeint", var])
         )
         plot_df_grp = plot_df.groupby(["veh_cls_res", "direction"])
         sns.set(font_scale=1.1)
@@ -243,7 +237,7 @@ class TtEval:
                 cmap=color_bar_,
                 linewidths=0.5,
                 ax=ax,
-                square=False
+                square=False,
             )
             if name[1] == "SB":
                 g.invert_yaxis()
@@ -345,11 +339,11 @@ if __name__ == "__main__":
         "avg_speed",
         "q95_trav",
         "avg_veh_delay",
-        #"avg_person_delay",
+        # "avg_person_delay",
         "tot_veh",
-        #"tot_people",
+        # "tot_people",
         "avg_speed_from_tt",
-        "avg_dist_ft"
+        "avg_dist_ft",
     ]
     # Result travel time segment number to be retained in the output.
     # [1,2,3,4,5,6,7,8,9,10,11,12]

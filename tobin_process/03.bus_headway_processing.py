@@ -33,7 +33,7 @@ if __name__ == "__main__":
     veh_types_res_cls = {
         "MBTA-111": [301],
         "MBTA-426-426W-428": [302, 303, 304],
-        "Private Bus": [305]
+        "Private Bus": [305],
     }
     # Occupany by vissim vehicle types.
     veh_types_occupancy = {100: 1, 200: 1, 300: 60}

@@ -111,15 +111,14 @@ if __name__ == "__main__":
         keep_movement_fromlink_level_=[1, np.nan],
     )
     # Test if there are missing Vissim directions in the Mapper File
-    add_following_direction_to_mapper = (node_eval_am.node_eval_res_fil_uniq_dir
-        .query(
-            """
+    add_following_direction_to_mapper = node_eval_am.node_eval_res_fil_uniq_dir.query(
+        """
             direction_results.isna()
-            """)
-        .drop_duplicates(["node_no", "direction_results"])
+            """
+    ).drop_duplicates(["node_no", "direction_results"])
+    assert len(add_following_direction_to_mapper) == 0, (
+        "Add the above missing rows to " "mapper."
     )
-    assert len(add_following_direction_to_mapper) == 0, "Add the above missing rows to " \
-                                                        "mapper."
     # Print the filtered vissim node evaluation data.
     node_eval_am.node_eval_res_fil.head()
     # Test if "node_evaluation_vissim_report_mapping.xlsx" , "deduplicate_movements" has
