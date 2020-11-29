@@ -110,7 +110,31 @@ if __name__ == "__main__":
     link_seg_am.merge_link_mapper()
 
     link_seg_am.plot_heatmaps(
-        plot_var="speed_1020", color_lab="Speed (mph)", zmin=10, zmax=70
+        plot_var="speed_1020",
+        index_var="display_name",
+        color_lab="Speed (mph)",
+        zmin=10,
+        zmax=70,
+        yaxis_ticksuffix_="",
+        xaxis_ticksuffix_="",
+        margin_=dict(l=1200, pad=10),
+        height_=1600,
+        width_=1800,
+        title_suffix="",
+    )
+
+    link_seg_am.plot_heatmaps(
+        plot_var="speed_1020",
+        index_var="cum_offset",
+        color_lab="Speed (mph)",
+        zmin=10,
+        zmax=70,
+        yaxis_ticksuffix_=" mi",
+        xaxis_ticksuffix_=" am",
+        margin_=dict(pad=10),
+        height_=800,
+        width_=1000,
+        title_suffix="miles",
     )
 
     link_seg_am.link_seg_vissim_fil_ord = link_seg_am.link_seg_vissim_fil_ord.assign(
@@ -118,8 +142,30 @@ if __name__ == "__main__":
     )
     link_seg_am.plot_heatmaps(
         plot_var="density_1020_by_ln",
-        color_lab="Density<br>(veh/mi/ln)",
+        index_var="display_name",
+        color_lab="Density (veh/mi/ln)",
         zmin=0,
         zmax=120,
         colorscale_="viridis_r",
+        yaxis_ticksuffix_="",
+        xaxis_ticksuffix_="",
+        margin_=dict(l=1200, pad=10),
+        height_=1600,
+        width_=1800,
+        title_suffix="",
     )
+
+    link_seg_am.plot_heatmaps(
+        plot_var="density_1020_by_ln",
+        index_var="display_name",
+        color_lab="Density (veh/mi/ln)",
+        zmin=0,
+        zmax=120,
+        yaxis_ticksuffix_=" mi",
+        xaxis_ticksuffix_=" am",
+        margin_=dict(pad=10),
+        title_suffix="miles",
+        height_=800,
+        width_=1000,
+    )
+
