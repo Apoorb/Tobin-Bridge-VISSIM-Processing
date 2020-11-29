@@ -24,12 +24,7 @@ if __name__ == "__main__":
     # in results.
     # ************************************************************************************
     # Vissim time intervals
-    order_timeint = [
-        "900-4500",
-        "4500-8100",
-        "8100-11700",
-        "11700-12600",
-    ]
+    order_timeint = ["2700-6300", "6300-9900", "9900-13500", "13500-14400"]
     # Vissim time interval labels for am.
     order_timeint_labels_am = ["6:00-7:00", "7:00-8:00", "8:00-9:00", "9:00-9:15"]
     # Vissim time interval labels for pm.

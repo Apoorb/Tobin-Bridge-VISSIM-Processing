@@ -62,10 +62,12 @@ class BusHeadway(tt_helper.TtEval):
                     "tt_seg_name",
                     "veh_cls_res",
                     "timeint",
+                    "time",
                     "headway",
                 ]
             )
         )
+        tt_vissim_headway_fil = tt_vissim_headway.query("~ veh_cls_res.isna()")
         # Get aggregate statistics for headway across all vissim runs.
         self.tt_vissim_headway_grp = (
             tt_vissim_headway.groupby(
