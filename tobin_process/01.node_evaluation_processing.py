@@ -94,7 +94,7 @@ if __name__ == "__main__":
         "13500-14400": "9:00-9:15 am",
     }
     # Sort order for the report results column.
-    results_cols = ["qlen", "qlenmax", "vehs_all", "vehdelay_all", "los"]
+    results_cols = ["qlen", "qlenmax", "vehdelay_all", "los"]
 
     node_eval_am = node_eval_helper.NodeEval(
         path_to_mapper_node_eval_=path_to_mapper_node_eval,
