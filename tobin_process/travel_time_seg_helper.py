@@ -136,6 +136,9 @@ class TtEval:
         """
         Add travel time segment names and direction to self.tt_vissim_raw .
         """
+        self.tt_mapper = self.tt_mapper.sort_values(
+            ["direction", "sort_order"]
+        ).reset_index()
         self.tt_vissim_raw = self.tt_vissim_raw.merge(
             self.tt_mapper, left_on="no", right_on="tt_seg_no", how="right"
         ).assign(
