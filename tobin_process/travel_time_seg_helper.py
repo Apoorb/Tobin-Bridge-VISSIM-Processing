@@ -221,14 +221,14 @@ class TtEval:
             .filter(items=["veh_cls_res", "direction", "tt_seg_name", "timeint", var])
         )
         plot_df_grp = plot_df.groupby(["veh_cls_res", "direction"])
-        sns.set(font_scale=1.1)
+        sns.set(font_scale=1)
         for name, group in plot_df_grp:
             plot_df_grp_fil = pd.pivot_table(
                 group, values=var, columns="timeint", index="tt_seg_name"
             )
             plot_df_grp_fil = plot_df_grp_fil.sort_index(ascending=False)
             color_bar_ = "viridis"
-            fig, ax = plt.subplots(1, figsize=(7, 2))
+            fig, ax = plt.subplots(1, figsize=(8, 3))
             g = sns.heatmap(
                 plot_df_grp_fil,
                 vmin=0,
@@ -238,6 +238,7 @@ class TtEval:
                 linewidths=0.5,
                 ax=ax,
                 square=False,
+                fmt=".1f"
             )
             if name[1] == "SB":
                 g.invert_yaxis()
