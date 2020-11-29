@@ -241,7 +241,7 @@ class TtEval:
                 linewidths=0.5,
                 ax=ax,
                 square=False,
-                fmt=".1f"
+                fmt=".1f",
             )
             if name[1] == "SB":
                 g.invert_yaxis()

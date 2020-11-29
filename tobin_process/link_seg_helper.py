@@ -117,8 +117,29 @@ class LinkSegEval:
                 "st_pt",
             ]
         )
+        self.link_seg_vissim_fil_ord = self.link_seg_vissim_fil_ord.assign(
+            st_end_diff=lambda df: df.end_pt - df.st_pt,
+            cum_offset=lambda df: df.groupby(
+                ["linkevalsegmentevaluation_simrun", "timeint", "direction"]
+            ).st_end_diff.cumsum()
+            / 5280,
+        )
 
-    def plot_heatmaps(self, plot_var, color_lab, zmin, zmax, colorscale_="viridis"):
+    def plot_heatmaps(
+        self,
+        plot_var,
+        index_var,
+        color_lab,
+        zmin,
+        zmax,
+        yaxis_ticksuffix_,
+        xaxis_ticksuffix_,
+        title_suffix,
+        margin_,
+        height_,
+        width_,
+        colorscale_="viridis",
+    ):
         """
         Parameters
         ----------
@@ -155,7 +176,7 @@ class LinkSegEval:
                     ),
                     values=plot_var,
                     columns="timeint",
-                    index="display_name",
+                    index=index_var,
                 )
                 .sort_index(axis=1, ascending=True)
                 .sort_index(axis=0, ascending=True)
@@ -177,30 +198,32 @@ class LinkSegEval:
             if name[1] == "SB":
                 fig.update_layout(yaxis_autorange="reversed")
             fig.update_layout(
-                height=1200,
-                width=2000,
-                margin=dict(l=1400, pad=10),
+                margin=margin_,
                 autosize=True,
                 font=dict(size=22),
                 plot_bgcolor="rgba(0,0,0,0)",
+                yaxis_ticksuffix=yaxis_ticksuffix_,
+                xaxis_ticksuffix=xaxis_ticksuffix_,
             )
             path_to_output_tt_fig_filenm_html = os.path.join(
                 self.path_to_output_link_seg_fig,
-                "_".join([str(name[0]), name[1], plot_var, ".html"]),
+                "_".join([str(name[0]), name[1], plot_var, title_suffix, ".html"]),
             )
             fig.write_html(path_to_output_tt_fig_filenm_html)
             fig.update_layout(
-                height=1600,
-                width=1800,
-                margin=dict(l=1200, pad=10),
+                height=height_,
+                width=width_,
+                margin=margin_,
                 autosize=False,
                 font=dict(size=22),
                 plot_bgcolor="rgba(0,0,0,0)",
+                yaxis_ticksuffix=yaxis_ticksuffix_,
+                xaxis_ticksuffix=xaxis_ticksuffix_,
             )
 
             path_to_output_tt_fig_filenm = os.path.join(
                 self.path_to_output_link_seg_fig,
-                "_".join([str(name[0]), name[1], plot_var, ".jpg"]),
+                "_".join([str(name[0]), name[1], plot_var, title_suffix, ".jpg"]),
             )
             fig.write_image(path_to_output_tt_fig_filenm)
 
@@ -290,7 +313,7 @@ if __name__ == "__main__":
         "7:00-7:15",
     ]
     # Vissim runs to output result for.
-    keep_runs = [1]
+    keep_runs = ["AVG"]
 
     link_seg_am = LinkSegEval(
         path_to_mapper_link_seg_=path_to_mapper_link_seg,
@@ -306,8 +329,33 @@ if __name__ == "__main__":
     )
     link_seg_am.test_seg_eval_len()
     link_seg_am.merge_link_mapper()
+
     link_seg_am.plot_heatmaps(
-        plot_var="speed_1020", color_lab="Speed (mph)", zmin=10, zmax=70
+        plot_var="speed_1020",
+        index_var="display_name",
+        color_lab="Speed (mph)",
+        zmin=10,
+        zmax=70,
+        yaxis_ticksuffix_="",
+        xaxis_ticksuffix_="",
+        margin_=dict(l=1200, pad=10),
+        height_=1600,
+        width_=1800,
+        title_suffix="",
+    )
+
+    link_seg_am.plot_heatmaps(
+        plot_var="speed_1020",
+        index_var="cum_offset",
+        color_lab="Speed (mph)",
+        zmin=10,
+        zmax=70,
+        yaxis_ticksuffix_=" mi",
+        xaxis_ticksuffix_=" am",
+        margin_=dict(pad=10),
+        height_=800,
+        width_=1000,
+        title_suffix="miles",
     )
 
     link_seg_am.link_seg_vissim_fil_ord = link_seg_am.link_seg_vissim_fil_ord.assign(
@@ -315,8 +363,29 @@ if __name__ == "__main__":
     )
     link_seg_am.plot_heatmaps(
         plot_var="density_1020_by_ln",
-        color_lab="Density (veh/mi/ln)",
+        index_var="display_name",
+        color_lab="Density<br>(veh/mi/ln)",
         zmin=0,
         zmax=120,
         colorscale_="viridis_r",
+        yaxis_ticksuffix_="",
+        xaxis_ticksuffix_="",
+        margin_=dict(l=1200, pad=10),
+        height_=1600,
+        width_=1800,
+        title_suffix="",
+    )
+
+    link_seg_am.plot_heatmaps(
+        plot_var="density_1020_by_ln",
+        index_var="cum_offset",
+        color_lab="Density<br>(veh/mi/ln)",
+        zmin=0,
+        zmax=120,
+        yaxis_ticksuffix_=" mi",
+        xaxis_ticksuffix_=" am",
+        margin_=dict(pad=10),
+        title_suffix="miles",
+        height_=800,
+        width_=1000,
     )
