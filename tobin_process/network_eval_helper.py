@@ -19,7 +19,7 @@ def network_eval_processing(
     network_eval_fil = (
         network_eval.loc[
             lambda df: df.vehiclenetworkperformancemeasurementevaluation_simrun.isin(
-                [1]
+                ["AVG"]
             )
         ]
         .filter(
@@ -60,54 +60,12 @@ if __name__ == "__main__":
     # travel time segments to keep.
     # in results.
     # ************************************************************************************
-    order_timeint = [
-        "900-1800",
-        "1800-2700",
-        "2700-3600",
-        "3600-4500",
-        "4500-5400",
-        "5400-6300",
-        "6300-7200",
-        "7200-8100",
-        "8100-9000",
-        "9000-9900",
-        "9900-10800",
-        "10800-11700",
-        "11700-12600",
-    ]
-    # Vissim time interval labels.
-    order_timeint_labels_am = [
-        "6:00-6:15",
-        "6:15-6:30",
-        "6:30-6:45",
-        "6:45-7:00",
-        "7:00-7:15",
-        "7:15-7:30",
-        "7:30-7:45",
-        "7:45-8:00",
-        "8:00-8:15",
-        "8:15-8:30",
-        "8:30-8:45",
-        "8:45-9:00",
-        "9:00-9:15",
-    ]
+    # Vissim time intervals
+    order_timeint = ["2700-6300", "6300-9900", "9900-13500", "13500-14400"]
+    # Vissim time interval labels for am.
+    order_timeint_labels_am = ["6:00-7:00", "7:00-8:00", "8:00-9:00", "9:00-9:15"]
     # Vissim time interval labels for pm.
-    order_timeint_labels_pm = [
-        "4:00-4:15",
-        "4:15-4:30",
-        "4:30-4:45",
-        "4:45-5:00",
-        "5:00-5:15",
-        "5:15-5:30",
-        "5:30-5:45",
-        "5:45-6:00",
-        "6:00-6:15",
-        "6:15-6:30",
-        "6:30-6:45",
-        "6:45-7:00",
-        "7:00-7:15",
-    ]
-
+    order_timeint_labels_pm = ["4:00-5:00", "5:00-6:00", "6:00-7:00", "7:00-7:15"]
     network_eval_fil = network_eval_processing(
         paths_network_eval_vissim_=paths_network_eval_vissim,
         order_timeint_=order_timeint,
