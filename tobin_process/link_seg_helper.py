@@ -341,7 +341,7 @@ if __name__ == "__main__":
         margin_=dict(l=1200, pad=10),
         height_=1600,
         width_=1800,
-        title_suffix="",
+        title_suffix="debug",
     )
 
     link_seg_am.plot_heatmaps(
@@ -373,13 +373,14 @@ if __name__ == "__main__":
         margin_=dict(l=1200, pad=10),
         height_=1600,
         width_=1800,
-        title_suffix="",
+        title_suffix="debug",
     )
 
     link_seg_am.plot_heatmaps(
         plot_var="density_1020_by_ln",
         index_var="cum_offset",
         color_lab="Density<br>(veh/mi/ln)",
+        colorscale_="viridis_r",
         zmin=0,
         zmax=120,
         yaxis_ticksuffix_=" mi",
@@ -389,3 +390,4 @@ if __name__ == "__main__":
         height_=800,
         width_=1000,
     )
+

@@ -120,7 +120,7 @@ if __name__ == "__main__":
         margin_=dict(l=1200, pad=10),
         height_=1600,
         width_=1800,
-        title_suffix="",
+        title_suffix="debug",
     )
 
     link_seg_am.plot_heatmaps(
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         margin_=dict(l=1200, pad=10),
         height_=1600,
         width_=1800,
-        title_suffix="",
+        title_suffix="debug",
     )
 
     link_seg_am.plot_heatmaps(
