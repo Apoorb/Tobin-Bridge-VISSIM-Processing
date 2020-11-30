@@ -51,7 +51,7 @@ if __name__ == "__main__":
     ]
     # Result travel time segment number to be retained in the output.
     # 1,
-    keep_tt_segs = (101, 102, 103, 104, 105, 106)
+    keep_tt_segs = (101, 102, 103, 104, 105, 106, 107, 108)
 
     bus_headway_am = bus_helper.BusHeadway(
         paths_tt_vissim_raw_=paths_tt_vissim_raw,

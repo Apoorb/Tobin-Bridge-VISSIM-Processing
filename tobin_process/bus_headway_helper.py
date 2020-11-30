@@ -46,7 +46,6 @@ class BusHeadway(tt_helper.TtEval):
                     "direction",
                     "tt_seg_name",
                     "veh_cls_res",
-                    "timeint",
                     "time",
                 ]
             )
@@ -60,6 +59,7 @@ class BusHeadway(tt_helper.TtEval):
                     "counter",
                     "direction",
                     "tt_seg_name",
+                    "veh_type",
                     "veh_cls_res",
                     "timeint",
                     "time",
@@ -67,10 +67,11 @@ class BusHeadway(tt_helper.TtEval):
                 ]
             )
         )
-        tt_vissim_headway_fil = tt_vissim_headway.query("~ veh_cls_res.isna()")
+        tt_vissim_headway_fil = tt_vissim_headway.query("~ headway.isna()")
+
         # Get aggregate statistics for headway across all vissim runs.
         self.tt_vissim_headway_grp = (
-            tt_vissim_headway.groupby(
+            tt_vissim_headway_fil.groupby(
                 ["direction", "tt_seg_name", "veh_cls_res", "timeint"]
             )
             .agg(
@@ -113,19 +114,16 @@ if __name__ == "__main__":
     # in results.
     # ************************************************************************************
     # Vissim time intervals
-    order_timeint = [
-        "900-4500",
-        "4500-8100",
-        "8100-11700",
-        "11700-12600",
-    ]
+    order_timeint = ["2700-6300", "6300-9900", "9900-13500", "13500-14400"]
     # Vissim time interval labels for am.
     order_timeint_labels_am = ["6:00-7:00", "7:00-8:00", "8:00-9:00", "9:00-9:15"]
     # Vissim time interval labels for pm.
     order_timeint_labels_pm = ["4:00-5:00", "5:00-6:00", "6:00-7:00", "7:00-7:15"]
     # Report vehicle classes and corresponding vissim vehicle types.
     veh_types_res_cls = {
-        "bus": [300],
+        "MBTA-111": [301],
+        "MBTA-426-426W-428": [302, 303, 304],
+        "Private Bus": [305],
     }
     # Occupany by vissim vehicle types.
     veh_types_occupancy = {100: 1, 200: 1, 300: 60}
@@ -143,7 +141,7 @@ if __name__ == "__main__":
     ]
     # Result travel time segment number to be retained in the output.
     # [101, 102, 103, 104, 105, 106]
-    keep_tt_segs = range(101, 106 + 1)
+    keep_tt_segs = (101, 102, 103, 104, 105, 106, 107, 108)
 
     bus_headway_am = BusHeadway(
         paths_tt_vissim_raw_=paths_tt_vissim_raw,
