@@ -41,22 +41,16 @@ class BusHeadway(tt_helper.TtEval):
         #  veh_cls_res?
         tt_vissim_headway = (
             self.tt_vissim_raw.sort_values(
-                [
-                    "counter",
-                    "direction",
-                    "tt_seg_name",
-                    "veh_cls_res",
-                    "time",
-                ]
+                ["run_no", "direction", "tt_seg_name", "veh_cls_res", "time",]
             )
             .assign(
                 headway=lambda df: df.groupby(
-                    ["counter", "direction", "tt_seg_name", "veh_cls_res"]
+                    ["run_no", "direction", "tt_seg_name", "veh_cls_res"]
                 )["time"].diff()
             )
             .filter(
                 items=[
-                    "counter",
+                    "run_no",
                     "direction",
                     "tt_seg_name",
                     "veh_type",

@@ -15,6 +15,9 @@ if __name__ == "__main__":
     paths_tt_vissim_raw = glob.glob(
         os.path.join(path_to_raw_data, "AM_Raw Travel Time", "*.rsr")
     )
+    paths_data_col_vissim_raw = glob.glob(
+        os.path.join(path_to_raw_data, "AM_Raw Travel Time", "*.mer")
+    )
     path_to_output_tt = os.path.join(path_to_interim_data, "process_tt.xlsx")
     path_to_output_fig = os.path.join(path_to_interim_data, "figures")
     if not os.path.exists(path_to_output_fig):
@@ -79,25 +82,32 @@ if __name__ == "__main__":
     # Report vehicle classes and corresponding vissim vehicle types.
     veh_types_res_cls = {
         "car_hgv_bus": [100, 200, 300, 301, 302, 303, 304, 305],
+        "car_hgv": [100, 200],
+        "bus": [300, 301, 302, 303, 304, 305],
     }
-    # Occupany by vissim vehicle types.
-    veh_types_occupancy = {100: 1, 200: 1, 300: 60}
+
+    # Which data collection points to use for vehicle occupancy?
+    use_data_col_no = [3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008]
     # Columns to keep.
     keep_cols = ["time", "no", "veh", "veh_type", "trav", "delay", "dist"]
     # Result columns.
     results_cols = [
         "avg_trav",
-        "avg_speed_from_tt",
-        "avg_dist_ft" "q95_trav",
+        "avg_speed",
+        "q95_trav",
         "avg_veh_delay",
-        # "avg_person_delay",
+        "avg_pers_delay",
         "tot_veh",
-        # "tot_people",
+        "tot_pers",
+        "avg_speed_from_tt",
+        "avg_dist_ft",
     ]
     # Result travel time segment number to be retained in the output.
     # [1,2,3,4,5,6,7,8,9,10,11,12]
-    keep_tt_segs = range(1, 99)
+    keep_tt_segs = [1, 23, 4, 20, 24, 21, 11, 12, 13, 25]
 
+    # Which Travel time segments to include in travel time results
+    plot_tt_segs = [1, 23, 4, 20, 21, 11, 12, 13]
     tt_eval_am = tt_helper.TtEval(
         path_to_mapper_tt_seg_=path_to_mapper_tt_seg,
         paths_tt_vissim_raw_=paths_tt_vissim_raw,
@@ -109,10 +119,12 @@ if __name__ == "__main__":
     tt_eval_am.read_rsr_tt(
         order_timeint_=order_timeint,
         order_timeint_labels_=order_timeint_labels_am,
-        veh_types_occupancy_=veh_types_occupancy,
         veh_types_res_cls_=veh_types_res_cls,
         keep_cols_=keep_cols,
         keep_tt_segs_=keep_tt_segs,
+        paths_data_col_vissim_raw_=paths_data_col_vissim_raw,
+        use_data_col_no_=use_data_col_no,
+        use_data_col_res=True,
     )
     # Add travel time segment name and direction to the data with summary statistics for
     # each simulation run.
@@ -120,4 +132,5 @@ if __name__ == "__main__":
     # Aggregate travel time results to get an average of all simulation runs.
     tt_eval_am.agg_tt(results_cols_=results_cols)
     tt_eval_am.save_tt_processed()
-    tt_eval_am.plot_heatmaps(var="avg_speed_from_tt")
+    tt_eval_am.plot_heatmaps(segs_to_plot = plot_tt_segs,
+                             var="avg_speed_from_tt")
