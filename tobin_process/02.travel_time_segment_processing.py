@@ -99,7 +99,6 @@ if __name__ == "__main__":
         "avg_pers_delay",
         "tot_veh",
         "tot_pers",
-        "avg_speed_from_tt",
         "avg_dist_ft",
     ]
     # Result travel time segment number to be retained in the output.
@@ -133,4 +132,4 @@ if __name__ == "__main__":
     tt_eval_am.agg_tt(results_cols_=results_cols)
     tt_eval_am.save_tt_processed()
     tt_eval_am.plot_heatmaps(segs_to_plot = plot_tt_segs,
-                             var="avg_speed_from_tt")
+                             var="avg_speed")

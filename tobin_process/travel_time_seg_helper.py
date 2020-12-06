@@ -105,7 +105,6 @@ class TtEval:
                     veh_delay=lambda df: df.delay,
                     veh_count=1,
                     dist_ft=lambda df: df.dist * 3.28084,
-                    speed=lambda df: df.dist_ft / df.trav / 1.46667,
                 )
                 .drop(columns=["dist"])
             )
@@ -125,7 +124,6 @@ class TtEval:
                 avg_veh_delay=("veh_delay", "mean"),
                 avg_trav=("trav", "mean"),
                 q95_trav=("trav", lambda x: np.quantile(x, 0.95)),
-                avg_speed=("speed", "mean"),
                 avg_dist_ft=("dist_ft", "mean"),
                 tot_veh=("veh_count", "sum"),
             )
@@ -262,7 +260,6 @@ class TtEval:
             "avg_veh_delay": "mean",
             "avg_trav": "mean",
             "q95_trav": "mean",
-            "avg_speed": "mean",
             "avg_dist_ft": "mean",
             "tot_veh": "mean",
             "tot_pers": "mean",
@@ -284,7 +281,7 @@ class TtEval:
             )
             .agg(agg_dict_filter)
             .assign(
-                avg_speed_from_tt=lambda df: np.round(
+                avg_speed=lambda df: np.round(
                     df.avg_dist_ft / df.avg_trav / 1.47, 2
                 ),
             )
@@ -456,7 +453,6 @@ if __name__ == "__main__":
         "avg_pers_delay",
         "tot_veh",
         "tot_pers",
-        "avg_speed_from_tt",
         "avg_dist_ft",
     ]
     # Result travel time segment number to be retained in the output.

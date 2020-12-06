@@ -17,7 +17,7 @@ if __name__ == "__main__":
         path_to_mappers_data, "node_evaluation_vissim_report_mapping.xlsx"
     )
     path_to_node_eval_res_am = os.path.join(
-        path_to_raw_data, "Tobin Bridge Base Model - AM Peak Hour V2_Node Results.att"
+        path_to_raw_data, "Tobin Bridge Base Model - AM Peak Period V3_Node Results.att"
     )
     path_to_output_node_data = os.path.join(
         path_to_interim_data, "process_node_eval.xlsx"

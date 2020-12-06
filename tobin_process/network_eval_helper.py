@@ -50,7 +50,7 @@ if __name__ == "__main__":
     path_to_interim_data = os.path.join(path_to_prj, "data", "interim")
     paths_network_eval_vissim = os.path.join(
         path_to_raw_data,
-        "Tobin Bridge Base Model - AM Peak Hour V2_Vehicle Network Performance Evaluation Results.att",
+        "Tobin Bridge Base Model - AM Peak Period V3_Vehicle Network Performance Evaluation Results.att",
     )
     path_to_output_network_eval = os.path.join(
         path_to_interim_data, "process_network_eval.xlsx"

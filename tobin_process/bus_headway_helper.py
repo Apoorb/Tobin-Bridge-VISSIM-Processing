@@ -147,7 +147,6 @@ if __name__ == "__main__":
     bus_headway_am.read_rsr_tt(
         order_timeint_=order_timeint,
         order_timeint_labels_=order_timeint_labels_am,
-        veh_types_occupancy_=veh_types_occupancy,
         veh_types_res_cls_=veh_types_res_cls,
         keep_cols_=keep_cols,
         keep_tt_segs_=keep_tt_segs,

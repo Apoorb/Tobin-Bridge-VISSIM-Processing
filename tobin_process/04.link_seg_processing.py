@@ -16,7 +16,7 @@ if __name__ == "__main__":
     )
     path_link_seg_vissim = os.path.join(
         path_to_raw_data,
-        "Tobin Bridge Base Model - AM Peak Hour V2_Link Segment Results.att",
+        "Tobin Bridge Base Model - AM Peak Period V3_Link Segment Results.att",
     )
     path_to_output_fig = os.path.join(path_to_interim_data, "figures")
     if not os.path.exists(path_to_output_fig):
