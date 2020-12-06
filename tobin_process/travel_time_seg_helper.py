@@ -336,7 +336,7 @@ class TtEval:
             fig, ax = plt.subplots(1, figsize=(8, 3))
             g = sns.heatmap(
                 plot_df_grp_fil,
-                vmin=0,
+                vmin=10,
                 vmax=70,
                 annot=True,
                 cmap=color_bar_,
