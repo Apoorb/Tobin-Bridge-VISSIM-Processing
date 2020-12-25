@@ -1,9 +1,12 @@
-import pandas as pd
+"""
+Script for processing node evaluation results for Tobin Bridge. The key element of this
+script is the mapper file with vissim--->report direction mapping and vissim--->report
+direction mapping based on to and from link names. Can re-tool this script to work on
+other Vissim projects also.
+"""
 import os
-from pathlib import Path
 from tobin_process.utils import get_project_root
 import tobin_process.node_evaluation_helper as node_eval_helper  # noqa E402
-import inflection
 import numpy as np
 
 if __name__ == "__main__":
@@ -27,6 +30,8 @@ if __name__ == "__main__":
     # in results.
     # ************************************************************************************
     # Columns required for result processing.
+    # All of these columns would not be present in VISSIM node evaluation output file
+    # by default. Check, if you have included these columns in the VISSIM output file.
     keep_cols = [
         "$MOVEMENTEVALUATION:SIMRUN",  # would need for all projects
         "TIMEINT",  # would need for all projects
@@ -87,6 +92,7 @@ if __name__ == "__main__":
     ]
     # Sort order for the report time interval.
     order_timeint = ["2700-6300", "6300-9900", "9900-13500", "13500-14400"]
+    # Labels for different time intervals.
     order_timeint_labels_am = {
         "2700-6300": "6:00-7:00 am",
         "6300-9900": "7:00-8:00 am",
@@ -95,16 +101,28 @@ if __name__ == "__main__":
     }
     # Sort order for the report results column.
     results_cols = ["qlen", "qlenmax", "vehdelay_all", "los"]
-
+    # Initialize NodeEval class.
+    # Check your mapper (path_to_mapper_node_eval) file and the VISSIM network to ensure
+    # the mapping between Vissim direction and cardinal directions is correct. Also,
+    # check tab in the mapper file for de-duplicating direction and ensure that the
+    # movements for which de-duplication needs to take place have to_link and from_link
+    # names.
     node_eval_am = node_eval_helper.NodeEval(
         path_to_mapper_node_eval_=path_to_mapper_node_eval,
         path_to_node_eval_res_=path_to_node_eval_res_am,
         path_to_output_node_data_=path_to_output_node_data,
         remove_duplicate_dir=True,
     )
-    # filter rows and columns of the raw vissim node evaluation data.
+    # After the execution of this function, analyst can access:
+    #   node_eval_am.node_eval_res, node_eval_am.node_eval_mapper,
+    #   node_eval_am.node_no_node_type, node_eval_am.node_eval_deduplicate.
+    # Check node_eval_helper documentation for more details.
+
+    # Filter rows and columns of the raw vissim node evaluation data.
     # Assign unique directions to all movements.
     # Check if you actually have the results for the run you are trying to evaluate.
+    # After the execution of this function, analyst can access:
+    #   node_eval_am.node_eval_res_fil
     node_eval_am.clean_node_eval(
         keep_cols_=keep_cols,
         keep_runs_=["AVG"],

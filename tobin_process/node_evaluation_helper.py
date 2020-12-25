@@ -1,3 +1,6 @@
+"""
+Module to process node evaluation results from Tobin Bridge Project.
+"""
 import pandas as pd
 import numpy as np
 from tobin_process.utils import remove_special_char_vissim_col
@@ -50,6 +53,79 @@ def los_calc_twsc(delay):
 
 
 class NodeEval:
+    """ Class for processing node evaluation results from Tobin Bridge Project.
+
+    ...
+    Attributes
+    -----------
+    path_to_mapper_node_eval: str
+            Path to the node mapper file that maps vissim direction
+    path_to_node_eval_res: str
+            Path to the raw vissim data for node evaluation.
+    path_to_output_node_data: str
+            Path to output file for storing node evaluation results.
+    node_eval_mapper: pd.DataFrame()
+        Mapper data for converting Vissim directions into traffic operation directions.
+    node_no_node_type: pd.DataFrame()
+         Mapper data for mapping between node number and node type: signalized or twsc.
+    node_eval_deduplicate: pd.DataFrame()
+        Data for mapping between to_link and from_link with the movement name. Used for
+        de-duplicating turning movements with multiple from or to links. Link names need
+        to be added in VISSIM for links passing under node evaluation lines for this data
+        to work.
+    node_eval_res: pd.DataFrame()
+        Vissim node evaluation data with no special charaters for the column names
+    node_eval_res_fil: pd.DataFrame()
+        Filtered node_eval_res data w.r.t columns, runs, and movement from_link level.
+    node_intersection_delay: pd.DataFrame()
+        Data aggregated at intersection level.
+    node_approach_delay: pd.DataFrame()
+        Data aggregated by approach.
+    report_data: pd.DataFrame()
+        Concatenated turning movement, approach, and intersection data.
+    report_data_fil_pivot: pd.DataFrame()
+        Pivot the report_data before saving to file.
+    keep_cols_cor_nm: list
+        Columns to keep in the data.
+    keep_runs: list
+        Runs to keep in the final output.
+
+    Methods
+    -----------
+    read_node_eval(): Read vissim node evaluation data. Remove special charaters for the
+        column names. Read the data saved in self.path_to_node_eval_res.
+    clean_node_eval(keep_cols_, keep_runs_, keep_movement_fromlink_level_): Test if the
+        run for which results are needed is actually present in the results. If the run
+        is present, then call filter_to_relevant_cols_rows to filter columns using
+        keeps_cols, runs using keep_runs, and movement using
+        keep_movement_fromlink_level_.
+    test_run_present(): Test if keep_runs_ is present in data.
+    filter_to_relevant_cols_rows(keep_movement_fromlink_level_): Filter node_eval_res
+        on keep_cols_, keep_runs_, keep_movement_fromlink_level_. Save filtered data to
+        node_eval_res_fil.
+    add_report_directions(): Add cardinal direction to the node_eval_res_fil data based on
+     the node_eval_mapper and node_eval_deduplicate data. Save the new data to
+     node_eval_res_fil_uniq_dir.
+    test_deduplicate_has_correct_values(): Test if the to_links and from_links defined
+        in node_eval_deduplicate are present in the vissim data (node_eval_res_fil).
+    deduplicate_repeated_dirs(): De-duplicate directions in node_eval_res_fil_uniq_dir
+        using the node_eval_deduplicate data.
+    test_unique_dir_per_node(): Test if we have unique directions for each node i.e. we
+        we successfully renamed dupicated directions using the deduplicate_repeated_dirs()
+        function.
+    get_veh_delay_by_intersection(): Aggregate delay by intersection.
+    get_veh_delay_by_approach(): Aggregate delay by approach.
+    set_report_data(df_list): Concat results by direction, approach, and intersection.
+    set_los(): Set LOS based on delay.
+    format_report_table(
+        order_direction_results_,
+        order_timeint_,
+        results_cols_,
+        order_timeint_label_,
+    ): Label time intervals, filter results column, set directions in correct sort order.
+    save_output_file(): Save the final data.
+    """
+
     def __init__(
         self,
         path_to_mapper_node_eval_,
@@ -58,6 +134,10 @@ class NodeEval:
         remove_duplicate_dir=False,
     ):
         """
+        Initialize the class with path to the mapper file that provides a cross-walk
+        between the Vissim and the report (cardinal) directions, node evaluation results
+        file, path where the output/ processed data should be saved, and if there is a
+        need to remove duplicated directions for the an approach.
         Parameters
         ----------
         path_to_mapper_node_eval_: str
@@ -71,6 +151,7 @@ class NodeEval:
             If True, use vissim_report_convertion sheet in path_to_mapper_node_eval_ to
             deduplicate duplicated directions for same node.
         """
+        # Set paths.
         self.path_to_mapper_node_eval = path_to_mapper_node_eval_
         self.path_to_node_eval_res = path_to_node_eval_res_
         self.path_to_output_node_data = path_to_output_node_data_
@@ -128,7 +209,8 @@ class NodeEval:
 
     def read_node_eval(self):
         """
-        Read vissim node evaluation data. Remove special charaters for the column names.
+        Read vissim node evaluation data. Remove special charaters for the column names
+        Read the data saved in self.path_to_node_eval_res.
         """
         # * is comment line. $ also means comment, but in pandas we can only use one
         # char for denoting comment, so using skiprow=1 to skip the 1st row, which has
@@ -142,6 +224,10 @@ class NodeEval:
 
     def clean_node_eval(self, keep_cols_, keep_runs_, keep_movement_fromlink_level_):
         """
+        Test if the run for which results are needed is actually present in the results.
+        If the run is present, then call filter_to_relevant_cols_rows to filter
+        columns using keeps_cols, runs using keep_runs, and movement using
+        keep_movement_fromlink_level_.
         Parameters
         ----------
         keep_cols_: list
@@ -153,7 +239,6 @@ class NodeEval:
             interested in level 1 and np.nan (no level data)
         Returns
         -------
-
         """
         keep_cols_cor_nm = remove_special_char_vissim_col(keep_cols_)
         self.keep_cols_cor_nm = keep_cols_cor_nm
