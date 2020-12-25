@@ -170,9 +170,13 @@ class TtEval:
                             )
                             # Assuming all veh type < 300 are not buses.
                             # Assuming all veh type above 300 are busses
+                            if "car_hgv_veh_occupancy" in kwargs:
+                                car_hgv_veh_occupancy = kwargs["car_hgv_veh_occupancy"]
+                            else:
+                                raise ValueError("Add car_hgv_veh_occupancy parameter.")
                             tt_vissim_raw.loc[
                                 lambda df: (df.veh_type < 300), "pers"
-                            ] = 1
+                            ] = car_hgv_veh_occupancy
                             assert not tt_vissim_raw.pers.isna().values.any(), (
                                 "Check if there is occupancy data collected in data"
                                 "collection point for all buses."
@@ -336,8 +340,8 @@ class TtEval:
             fig, ax = plt.subplots(1, figsize=(8, 3))
             g = sns.heatmap(
                 plot_df_grp_fil,
-                vmin=10,
-                vmax=70,
+                vmin=0,
+                vmax=60,
                 annot=True,
                 cmap=color_bar_,
                 linewidths=0.5,
@@ -478,6 +482,7 @@ if __name__ == "__main__":
         paths_data_col_vissim_raw_=paths_data_col_vissim_raw,
         use_data_col_no_=use_data_col_no,
         use_data_col_res=True,
+        car_hgv_veh_occupancy=1.3
     )
     # Add travel time segment name and direction to the data with summary statistics for
     # each simulation run.
@@ -486,4 +491,4 @@ if __name__ == "__main__":
     tt_eval_am.agg_tt(results_cols_=results_cols)
     tt_eval_am.save_tt_processed()
     tt_eval_am.plot_heatmaps(segs_to_plot = plot_tt_segs,
-                             var="avg_speed_from_tt")
+                             var="avg_speed")

@@ -124,6 +124,7 @@ if __name__ == "__main__":
         paths_data_col_vissim_raw_=paths_data_col_vissim_raw,
         use_data_col_no_=use_data_col_no,
         use_data_col_res=True,
+        car_hgv_veh_occupancy=1.3
     )
     # Add travel time segment name and direction to the data with summary statistics for
     # each simulation run.

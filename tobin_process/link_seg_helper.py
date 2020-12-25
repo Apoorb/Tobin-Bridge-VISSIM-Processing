@@ -138,6 +138,7 @@ class LinkSegEval:
         margin_,
         height_,
         width_,
+        zmid=None,
         colorscale_="viridis",
     ):
         """
@@ -193,6 +194,7 @@ class LinkSegEval:
                     colorbar_title=color_lab,
                     zmin=zmin,
                     zmax=zmax,
+                    zmid=zmid
                 )
             )
             if name[1] == "SB":
@@ -335,28 +337,31 @@ if __name__ == "__main__":
         plot_var="speed_1020",
         index_var="display_name",
         color_lab="Speed (mph)",
-        zmin=10,
-        zmax=70,
+        zmin=0,
+        zmax=50,
         yaxis_ticksuffix_="",
         xaxis_ticksuffix_="",
         margin_=dict(l=1200, pad=10),
         height_=1600,
         width_=1800,
         title_suffix="debug",
+        colorscale_="viridis"
     )
 
     link_seg_am.plot_heatmaps(
         plot_var="speed_1020",
         index_var="cum_offset",
         color_lab="Speed (mph)",
-        zmin=10,
-        zmax=70,
+        zmin=0,
+        zmax=60,
         yaxis_ticksuffix_=" mi",
         xaxis_ticksuffix_=" am",
         margin_=dict(pad=10),
         height_=800,
         width_=1000,
         title_suffix="miles",
+        zmid=15,
+        colorscale_="RdYlGn"
     )
 
     link_seg_am.link_seg_vissim_fil_ord = link_seg_am.link_seg_vissim_fil_ord.assign(

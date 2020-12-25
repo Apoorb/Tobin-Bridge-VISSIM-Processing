@@ -119,8 +119,6 @@ if __name__ == "__main__":
         "MBTA-426-426W-428": [302, 303, 304],
         "Private Bus": [305],
     }
-    # Occupany by vissim vehicle types.
-    veh_types_occupancy = {100: 1, 200: 1, 300: 60}
     # Columns to keep.
     keep_cols = ["time", "no", "veh", "veh_type", "trav", "delay", "dist"]
     # Result columns.
