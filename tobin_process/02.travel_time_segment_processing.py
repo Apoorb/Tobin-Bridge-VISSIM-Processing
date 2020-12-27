@@ -122,7 +122,7 @@ if __name__ == "__main__":
     #     use_data_col_no_ = use_data_col_no,
     #     use_data_col_res = True,
     #     car_hgv_veh_occupancy = 1.3,
-    # TODO: Make the read_rsr_tt and incorporate_data_col_raw_data_occupancy more
+    # TODO: Make the read_rsr_tt and get_person_delay_from_data_col_raw_data_bus_occupancy more
     #  flexible.
     #  Currently it makes assumption about what vehicle types are buses; all vehicle type
     #  below 300 are considered cars and HGVs and all vehicle type above or equal to 300

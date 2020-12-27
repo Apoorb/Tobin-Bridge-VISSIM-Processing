@@ -13,6 +13,80 @@ import re
 
 
 class TtEval:
+    """
+    Class for processing travel time (.rsr) results. Also uses data collection results
+    (.mer) for getting the occupancy data for person delay.
+
+    ...
+    Attributes
+    ___________
+    path_to_mapper_tt_seg: str
+        Path to mapper file with mapping between vissim travel time segment number and the
+        travel time segment name and direction.
+    paths_tt_vissim_raw: str
+        Path to directory with the 10 (maybe more or maybe less) vissim run .rsr files for
+        a given vissim senario.
+    path_output_tt: str
+        Path to the output file.
+    path_to_output_tt_fig: str
+        Path to the output figures.
+    veh_types_res_cls: dict
+        Vehicle types in vissim to report vehicle category mapping. For instance
+        {"bus": [300, 301, 302, 303, 304, 305]} means that vissim vehicle type 300, 301,
+        302, 303, 304, and 305 are all buses.
+    veh_types_res_cls_df: pd.DataFrame()
+        veh_types_res_cls turned into a dataframe.
+    tt_mapper: pd.DataFrame()
+        Mapper file with mapping between vissim travel time segment number and the
+        travel time segment name and direction.
+    tt_vissim_raw: pd.DataFrame()
+        Dataframe with raw .rsr data for all runs.
+    tt_vissim_raw_grp_runs: pd.DataFrame()
+        Dataframe with aggregate data by run.
+    tt_vissim_raw_grps_ttname_agg: pd.DataFrame()
+        Final data with pivoted indices. This would be the final output.
+    Methods
+    ________
+    read_rsr_tt(
+            order_timeint_,
+            order_timeint_labels_,
+            keep_tt_segs_,
+            veh_types_res_cls_,
+            keep_cols_,
+            **kwargs
+        ): If the user only passes order_timeint_, order_timeint_labels_, keep_tt_segs_,
+            veh_types_res_cls_, keep_cols_ then use this function to read the .rsr file
+            and compute some run specific summaries.   #
+            Add the following kwarg parameters to incoporate occupancy data from data
+            collection points for computing person delay:
+                paths_data_col_vissim_raw_ = paths_data_col_vissim_raw,
+                use_data_col_no_ = use_data_col_no,
+                use_data_col_res = True,
+                car_hgv_veh_occupancy = 1.3,
+
+    get_person_delay_from_data_col_raw_data_bus_occupancy(
+        paths_data_col_vissim_raw,
+        use_data_col_no_,
+        file_no,
+        car_hgv_veh_occupancy,
+        tt_vissim_raw,
+        tt_vissim_raw_grp_runs,
+    ): Get person delay from data collection point raw output file.
+    merge_mapper(): Add the mapper data to tt_vissim_raw and tt_vissim_raw_grp_runs
+    agg_tt(
+        results_cols_=(
+            "avg_trav",
+            "avg_speed",
+            "q95_trav",
+            "avg_trav",
+            "avg_veh_delay",
+        ),
+    ): Aggreagate to scenario level results. Aggregate data in tt_vissim_raw_grp_runs
+        to tt_vissim_raw_grps_ttname_agg.
+    save_tt_processed(): Save tt_vissim_raw_grps_ttname_agg.
+    plot_heatmaps(segs_to_plot, var="avg_speed_from_tt"): Create heatmap for
+        avg_speed_from_tt.
+    """
     def __init__(
         self,
         path_to_mapper_tt_seg_,
@@ -138,7 +212,7 @@ class TtEval:
                     (
                         tt_vissim_raw,
                         tt_vissim_raw_grp_runs,
-                    ) = self.incorporate_data_col_raw_data_occupancy(
+                    ) = self.get_person_delay_from_data_col_raw_data_bus_occupancy(
                         paths_data_col_vissim_raw=kwargs["paths_data_col_vissim_raw_"],
                         use_data_col_no_=kwargs["use_data_col_no_"],
                         file_no=file_no,
@@ -157,7 +231,7 @@ class TtEval:
     # TODO: Make the function more flexible. Current it makes assumption about what
     #  vehicle types are buses. Let user define what vehicle type is a bus. I (Apoorb)
     #  have hard coded this for Tobin Bridge.
-    def incorporate_data_col_raw_data_occupancy(
+    def get_person_delay_from_data_col_raw_data_bus_occupancy(
         self,
         paths_data_col_vissim_raw,
         use_data_col_no_,
@@ -531,7 +605,7 @@ if __name__ == "__main__":
     #     use_data_col_no_ = use_data_col_no,
     #     use_data_col_res = True,
     #     car_hgv_veh_occupancy = 1.3,
-    # TODO: Make the read_rsr_tt and incorporate_data_col_raw_data_occupancy more
+    # TODO: Make the read_rsr_tt and get_person_delay_from_data_col_raw_data_bus_occupancy more
     #  flexible.
     #  Currently it makes assumption about what vehicle types are buses; all vehicle type
     #  below 300 are considered cars and HGVs and all vehicle type above or equal to 300
