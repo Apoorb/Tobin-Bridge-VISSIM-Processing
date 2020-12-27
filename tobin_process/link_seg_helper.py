@@ -149,6 +149,8 @@ class LinkSegEval:
         color_lab: str
             Label for the plot_var.
         """
+        # Groupby simualation runs and direction and then plot heatmaps for each of these
+        # groups.
         plot_grps = self.link_seg_vissim_fil_ord.groupby(
             ["linkevalsegmentevaluation_simrun", "direction"]
         )
@@ -198,7 +200,7 @@ class LinkSegEval:
                 )
             )
             if name[1] == "SB":
-                fig.update_layout(yaxis_autorange="reversed")
+                fig.update_layout(yaxis_autorange="reversed") # Change direction.
             fig.update_layout(
                 margin=margin_,
                 autosize=True,
