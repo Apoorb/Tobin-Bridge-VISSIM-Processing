@@ -142,6 +142,8 @@ if __name__ == "__main__":
     )
     # Read the raw rsr files, filter rows and columns, combine data from different runs
     # and get summary statistics for each simulation run.
+    # read_rsr_tt is same function as that used in 02.travel_time_segment_processing.py
+    # but without the parameters that are required for occupancy/ person delay processing.
     bus_headway_am.read_rsr_tt(
         order_timeint_=order_timeint,
         order_timeint_labels_=order_timeint_labels_am,

@@ -194,7 +194,7 @@ class LinkSegEval:
                     colorbar_title=color_lab,
                     zmin=zmin,
                     zmax=zmax,
-                    zmid=zmid
+                    zmid=zmid,
                 )
             )
             if name[1] == "SB":
@@ -206,7 +206,7 @@ class LinkSegEval:
                 plot_bgcolor="rgba(0,0,0,0)",
                 yaxis_ticksuffix=yaxis_ticksuffix_,
                 xaxis_ticksuffix=xaxis_ticksuffix_,
-                xaxis_tickangle=-45
+                xaxis_tickangle=-45,
             )
             path_to_output_tt_fig_filenm_html = os.path.join(
                 self.path_to_output_link_seg_fig,
@@ -345,7 +345,7 @@ if __name__ == "__main__":
         height_=1600,
         width_=1800,
         title_suffix="debug",
-        colorscale_="viridis"
+        colorscale_="viridis",
     )
 
     link_seg_am.plot_heatmaps(
@@ -361,7 +361,7 @@ if __name__ == "__main__":
         width_=1000,
         title_suffix="miles",
         zmid=15,
-        colorscale_="RdYlGn"
+        colorscale_="RdYlGn",
     )
 
     link_seg_am.link_seg_vissim_fil_ord = link_seg_am.link_seg_vissim_fil_ord.assign(

@@ -121,7 +121,7 @@ if __name__ == "__main__":
         height_=1600,
         width_=1800,
         title_suffix="debug",
-        colorscale_="viridis"
+        colorscale_="viridis",
     )
 
     link_seg_am.plot_heatmaps(
@@ -136,7 +136,7 @@ if __name__ == "__main__":
         height_=800,
         width_=1000,
         title_suffix="miles",
-        colorscale_="viridis"
+        colorscale_="viridis",
     )
 
     link_seg_am.link_seg_vissim_fil_ord = link_seg_am.link_seg_vissim_fil_ord.assign(
