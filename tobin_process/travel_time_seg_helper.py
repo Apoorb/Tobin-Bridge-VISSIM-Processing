@@ -1,3 +1,6 @@
+"""
+Module for processing the .rsr file generated from Vissim.
+"""
 import pandas as pd
 import numpy as np
 import os
@@ -108,8 +111,6 @@ class TtEval:
                 )
                 .drop(columns=["dist"])
             )
-            # TODO : Fix the veh_delay and person_delay piece
-            # Person Delay = Vehicle Delay * Occupancy
             tt_vissim_raw = tt_vissim_raw.merge(
                 self.veh_types_res_cls_df, on="veh_type", how="left"
             )
@@ -127,84 +128,24 @@ class TtEval:
                 avg_dist_ft=("dist_ft", "mean"),
                 tot_veh=("veh_count", "sum"),
             )
+            # TODO: This is hard coded. Make it more flexible in the future.
             if "use_data_col_res" in kwargs:
                 if kwargs["use_data_col_res"] == True:
-                    paths_data_col_vissim_raw = kwargs["paths_data_col_vissim_raw_"]
-                    use_data_col_no = kwargs["use_data_col_no_"]
-                    for path in paths_data_col_vissim_raw:
-                        file_nm_dat_col = os.path.basename(path)
-                        file_no_dat_col = int(
-                            file_nm_dat_col.split(".")[0].split("_")[1]
-                        )
-                        if file_no == file_no_dat_col:
-                            row = 0
-                            with open(path) as input_file:
-                                for current_line in input_file:
-                                    first_line = re.compile(r"")
-                                    len_ = len(re.split(";", current_line))
-                                    if len_ > 5:
-                                        break
-                                    row = row + 1
-                            dat_col_persons = pd.read_csv(path, skiprows=row, sep=";")
-                            dat_col_persons.columns = remove_special_char_vissim_col(
-                                dat_col_persons.columns
-                            )
-                            dat_col_persons_fil = (
-                                dat_col_persons.loc[
-                                    lambda df: (df.measurem.isin(use_data_col_no))
-                                    & (df.t_entry > 0)
-                                    & (df["vehicle type"] >= 300)
-                                ]
-                                .rename(
-                                    columns={
-                                        "veh_no": "veh",
-                                        "vehicle type": "veh_type_temp",
-                                    }
-                                )
-                                .sort_values("t_entry")
-                                .drop_duplicates("veh")
-                                .filter(items=["veh", "veh_type_temp", "pers"])
-                            )
-                            tt_vissim_raw = tt_vissim_raw.merge(
-                                dat_col_persons_fil, on="veh", how="left"
-                            )
-                            # Assuming all veh type < 300 are not buses.
-                            # Assuming all veh type above 300 are busses
-                            if "car_hgv_veh_occupancy" in kwargs:
-                                car_hgv_veh_occupancy = kwargs["car_hgv_veh_occupancy"]
-                            else:
-                                raise ValueError("Add car_hgv_veh_occupancy parameter.")
-                            tt_vissim_raw.loc[
-                                lambda df: (df.veh_type < 300), "pers"
-                            ] = car_hgv_veh_occupancy
-                            assert not tt_vissim_raw.pers.isna().values.any(), (
-                                "Check if there is occupancy data collected in data"
-                                "collection point for all buses."
-                            )
-
-                            tt_vissim_raw = tt_vissim_raw.assign(
-                                pers_delay=lambda df: df.pers * df.veh_delay
-                            )
-
-                            tt_vissim_raw_grp_runs_extra = (
-                                tt_vissim_raw.groupby(
-                                    ["run_no", "timeint", "no", "veh_cls_res"]
-                                )
-                                .agg(
-                                    tot_pers=("pers", "sum"),
-                                    tot_pers_delay=("pers_delay", "sum"),
-                                )
-                                .assign(
-                                    avg_pers_delay=lambda df: df.tot_pers_delay
-                                    / df.tot_pers
-                                )
-                            )
-                            tt_vissim_raw_grp_runs = pd.merge(
-                                tt_vissim_raw_grp_runs,
-                                tt_vissim_raw_grp_runs_extra,
-                                left_index=True,
-                                right_index=True,
-                            )
+                    if "car_hgv_veh_occupancy" in kwargs:
+                        "We have the occupancy data."
+                    else:
+                        raise ValueError("Add car_hgv_veh_occupancy parameter.")
+                    (
+                        tt_vissim_raw,
+                        tt_vissim_raw_grp_runs,
+                    ) = self.incorporate_data_col_raw_data_occupancy(
+                        paths_data_col_vissim_raw=kwargs["paths_data_col_vissim_raw_"],
+                        use_data_col_no_=kwargs["use_data_col_no_"],
+                        file_no=file_no,
+                        car_hgv_veh_occupancy=kwargs["car_hgv_veh_occupancy"],
+                        tt_vissim_raw=tt_vissim_raw,
+                        tt_vissim_raw_grp_runs=tt_vissim_raw_grp_runs,
+                    )
             list_tt_vissim_raw_grp_run.append(tt_vissim_raw_grp_runs)
             list_tt_vissim_raw.append(tt_vissim_raw)
 
@@ -213,6 +154,121 @@ class TtEval:
             list_tt_vissim_raw_grp_run
         ).reset_index()
 
+    # TODO: Make the function more flexible. Current it makes assumption about what
+    #  vehicle types are buses. Let user define what vehicle type is a bus. I (Apoorb)
+    #  have hard coded this for Tobin Bridge.
+    def incorporate_data_col_raw_data_occupancy(
+        self,
+        paths_data_col_vissim_raw,
+        use_data_col_no_,
+        file_no,
+        car_hgv_veh_occupancy,
+        tt_vissim_raw,
+        tt_vissim_raw_grp_runs,
+    ):
+        """
+        Use the data collection file to get the bus occupancy data for busses. For Tobim
+        bridge projects, all the buses pass through 2-3 common points so it was easy to
+        put data collection points on these location and measure the bus occupancy. The
+        data collection raw file (.mer file) starts collecting data before the travel time
+        data file (.rsr file); I am starting the data collection for data collection file
+        at 0 seconds whereas the data colelction for .rsr file starts at 2700 seconds.
+        This is needed to capture all the buses that pass the travel time segment.
+
+        Some of the assumptions in this function are Tobin Bridge project specific and
+        can be relaxed with function arguments later on. For instance, I consider all
+        vehicles with vehicle type < 300 as cars or HGVs and do not explicitly handles
+        vehicle type above 300.
+        Parameters
+        ----------
+        paths_data_col_vissim_raw: str
+            path to all the data collection files.
+        use_data_col_no_: list
+            List of data collection points that are used to get the bus occupancy data.
+        file_no: int
+            Travel time run number that is being processed. Pull the data collection point
+            results for the correspoing data collection point file.
+        car_hgv_veh_occupancy: float
+            Occupancy for cars and hgvs. I computed it for Tobin brdige based on the data
+            provided by Pete. For future projects, make this variable more flexible; can
+            use different occupancy for car and buses.
+        tt_vissim_raw: pd.DataFrame
+            Raw travel time data. This will be modified with features from data
+            collection point results in this function.
+        tt_vissim_raw_grp_runs: pd.DataFrame
+            Travel time aggregates/ summaries for a run. This will be modified with
+            features from data collection point results in this function.
+        Returns
+        -------
+        tt_vissim_raw: pd.DataFrame
+            Raw travel time data with person delay.
+        tt_vissim_raw_grp_runs: pd.DataFrame
+            Travel time data with average person delay.
+        """
+        for path in paths_data_col_vissim_raw:
+            file_nm_dat_col = os.path.basename(path)
+            file_no_dat_col = int(file_nm_dat_col.split(".")[0].split("_")[1])
+            # Proceed if file no of current data collection file matches the .rsr file.
+            if file_no == file_no_dat_col:
+                row = 0
+                with open(path) as input_file:
+                    for current_line in input_file:
+                        len_ = len(re.split(";", current_line))
+                        if len_ > 5:
+                            break # Length > 5 implies we have reached 1st valid row.
+                        row = row + 1
+                dat_col_persons = pd.read_csv(path, skiprows=row, sep=";")
+                dat_col_persons.columns = remove_special_char_vissim_col(
+                    dat_col_persons.columns
+                )
+                # t_entry > 0 removes -1 entries.
+                # df["vehicle type"] >=300 get all the buses.
+                # TODO: Change this >=300 by a user defined input. Let user define what
+                #  vehicle type is a bus. I (Apoorb) have hard coded this for Tobin
+                #  Bridge.
+                dat_col_persons_fil = (
+                    dat_col_persons.loc[
+                        lambda df: (df.measurem.isin(use_data_col_no))
+                        & (df.t_entry > 0)
+                        & (df["vehicle type"] >= 300)
+                    ]
+                    .rename(columns={"veh_no": "veh", "vehicle type": "veh_type_temp",})
+                    .sort_values("t_entry")
+                    .drop_duplicates("veh")
+                    .filter(items=["veh", "veh_type_temp", "pers"])
+                )
+                tt_vissim_raw = tt_vissim_raw.merge(
+                    dat_col_persons_fil, on="veh", how="left"
+                )
+                # Assuming all veh type < 300 are not buses.
+                # Assuming all veh type above 300 are busses
+                tt_vissim_raw.loc[
+                    lambda df: (df.veh_type < 300), "pers"
+                ] = car_hgv_veh_occupancy
+                assert not tt_vissim_raw.pers.isna().values.any(), (
+                    "Check if there is occupancy data collected in data"
+                    "collection point for all buses."
+                )
+
+                tt_vissim_raw = tt_vissim_raw.assign(
+                    pers_delay=lambda df: df.pers * df.veh_delay
+                )
+
+                tt_vissim_raw_grp_runs_extra = (
+                    tt_vissim_raw.groupby(["run_no", "timeint", "no", "veh_cls_res"])
+                    .agg(
+                        tot_pers=("pers", "sum"), tot_pers_delay=("pers_delay", "sum"),
+                    )
+                    .assign(avg_pers_delay=lambda df: df.tot_pers_delay / df.tot_pers)
+                )
+                # Add the person delay information to tt_vissim_raw_grp_runs dataframe.
+                tt_vissim_raw_grp_runs = pd.merge(
+                    tt_vissim_raw_grp_runs,
+                    tt_vissim_raw_grp_runs_extra,
+                    left_index=True,
+                    right_index=True,
+                )
+                return tt_vissim_raw, tt_vissim_raw_grp_runs
 
     def merge_mapper(self):
         """
@@ -269,25 +325,23 @@ class TtEval:
             "tot_pers": "mean",
             "tot_pers_delay": "mean",
             "avg_pers_delay": "mean",
-            "direction": "first"
+            "direction": "first",
         }
-
+        # Filter agg_dict.items() based on self.tt_vissim_raw_grp_runs.columns
+        # https://thispointer.com/python-filter-a-dictionary-by-conditions-on-keys-or-values/
         agg_dict_filter = dict(
             filter(
                 lambda elem: elem[0] in self.tt_vissim_raw_grp_runs.columns,
                 agg_dict.items(),
             )
         )
-
         self.tt_vissim_raw_grps_ttname_agg = (
             self.tt_vissim_raw_grp_runs.groupby(
                 ["timeint", "tt_seg_name", "veh_cls_res"]
             )
             .agg(agg_dict_filter)
             .assign(
-                avg_speed=lambda df: np.round(
-                    df.avg_dist_ft / df.avg_trav / 1.47, 2
-                ),
+                avg_speed=lambda df: np.round(df.avg_dist_ft / df.avg_trav / 1.47, 2),
             )
             .reset_index()
             .set_index(["timeint", "direction", "tt_seg_name", "veh_cls_res"])
@@ -296,6 +350,7 @@ class TtEval:
             .unstack()
             .swaplevel(axis=1)
         )
+        # Reformat dataframe for output.
         mux = pd.MultiIndex.from_product(
             [list(self.veh_types_res_cls.keys()), results_cols_],
             names=["veh_cls_res", ""],
@@ -321,14 +376,10 @@ class TtEval:
             .reset_index()
             .filter(items=["veh_cls_res", "direction", "tt_seg_name", "timeint", var])
         )
-        df_keep_segs = (self.tt_mapper[["tt_seg_no", "tt_seg_name"]]
-        .loc[lambda df: df.tt_seg_no.isin(segs_to_plot)])
-        plot_df_fil = pd.merge(
-            plot_df,
-            df_keep_segs,
-            on="tt_seg_name",
-            how="inner"
-        )
+        df_keep_segs = self.tt_mapper[["tt_seg_no", "tt_seg_name"]].loc[
+            lambda df: df.tt_seg_no.isin(segs_to_plot)
+        ]
+        plot_df_fil = pd.merge(plot_df, df_keep_segs, on="tt_seg_name", how="inner")
         plot_df_grp = plot_df_fil.groupby(["veh_cls_res", "direction"])
         sns.set(font_scale=1)
         for name, group in plot_df_grp:
@@ -349,7 +400,6 @@ class TtEval:
                 square=False,
                 fmt=".1f",
             )
-
             g.set_xticklabels(rotation=30, labels=g.get_xticklabels(), ha="right")
             g.set_yticklabels(rotation=30, labels=g.get_yticklabels())
             g.set_ylabel("")
@@ -472,7 +522,23 @@ if __name__ == "__main__":
         path_to_output_tt_fig_=path_to_output_tt_fig,
     )
     # Read the raw rsr files, filter rows and columns, combine data from different runs
-    # and get summary statistics for each simulation run.
+    # and get summary statistics for each simulation run. Make sure both travel time and
+    # data collection files are present for all runs if you are incorporating occupancy
+    # data from data collection oint..
+    # Delete the following if you do not want to incorporate occupancy data from data
+    # collection points:
+    #     paths_data_col_vissim_raw_ = paths_data_col_vissim_raw,
+    #     use_data_col_no_ = use_data_col_no,
+    #     use_data_col_res = True,
+    #     car_hgv_veh_occupancy = 1.3,
+    # TODO: Make the read_rsr_tt and incorporate_data_col_raw_data_occupancy more
+    #  flexible.
+    #  Currently it makes assumption about what vehicle types are buses; all vehicle type
+    #  below 300 are considered cars and HGVs and all vehicle type above or equal to 300
+    #  are considered buses.
+    #  Let user define what vehicle type is a bus. I (Apoorb) have hard coded this for
+    #  Tobin Bridge.
+
     tt_eval_am.read_rsr_tt(
         order_timeint_=order_timeint,
         order_timeint_labels_=order_timeint_labels_am,
@@ -482,7 +548,7 @@ if __name__ == "__main__":
         paths_data_col_vissim_raw_=paths_data_col_vissim_raw,
         use_data_col_no_=use_data_col_no,
         use_data_col_res=True,
-        car_hgv_veh_occupancy=1.3
+        car_hgv_veh_occupancy=1.3,
     )
     # Add travel time segment name and direction to the data with summary statistics for
     # each simulation run.
@@ -490,5 +556,4 @@ if __name__ == "__main__":
     # Aggregate travel time results to get an average of all simulation runs.
     tt_eval_am.agg_tt(results_cols_=results_cols)
     tt_eval_am.save_tt_processed()
-    tt_eval_am.plot_heatmaps(segs_to_plot = plot_tt_segs,
-                             var="avg_speed")
+    tt_eval_am.plot_heatmaps(segs_to_plot=plot_tt_segs, var="avg_speed")

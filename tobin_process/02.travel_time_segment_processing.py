@@ -113,8 +113,22 @@ if __name__ == "__main__":
         path_output_tt_=path_to_output_tt,
         path_to_output_tt_fig_=path_to_output_tt_fig,
     )
+
     # Read the raw rsr files, filter rows and columns, combine data from different runs
     # and get summary statistics for each simulation run.
+    # Delete the following if you do not want to incoporate occupancy data from data
+    # collection points:
+    #     paths_data_col_vissim_raw_ = paths_data_col_vissim_raw,
+    #     use_data_col_no_ = use_data_col_no,
+    #     use_data_col_res = True,
+    #     car_hgv_veh_occupancy = 1.3,
+    # TODO: Make the read_rsr_tt and incorporate_data_col_raw_data_occupancy more
+    #  flexible.
+    #  Currently it makes assumption about what vehicle types are buses; all vehicle type
+    #  below 300 are considered cars and HGVs and all vehicle type above or equal to 300
+    #  are considered buses.
+    #  Let user define what vehicle type is a bus. I (Apoorb) have hard coded this for
+    #  Tobin Bridge.
     tt_eval_am.read_rsr_tt(
         order_timeint_=order_timeint,
         order_timeint_labels_=order_timeint_labels_am,
@@ -124,7 +138,7 @@ if __name__ == "__main__":
         paths_data_col_vissim_raw_=paths_data_col_vissim_raw,
         use_data_col_no_=use_data_col_no,
         use_data_col_res=True,
-        car_hgv_veh_occupancy=1.3
+        car_hgv_veh_occupancy=1.3,
     )
     # Add travel time segment name and direction to the data with summary statistics for
     # each simulation run.
@@ -132,5 +146,4 @@ if __name__ == "__main__":
     # Aggregate travel time results to get an average of all simulation runs.
     tt_eval_am.agg_tt(results_cols_=results_cols)
     tt_eval_am.save_tt_processed()
-    tt_eval_am.plot_heatmaps(segs_to_plot = plot_tt_segs,
-                             var="avg_speed")
+    tt_eval_am.plot_heatmaps(segs_to_plot=plot_tt_segs, var="avg_speed")
