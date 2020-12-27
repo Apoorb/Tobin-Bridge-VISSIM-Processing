@@ -7,6 +7,9 @@ import tobin_process.travel_time_seg_helper as tt_helper
 
 
 class BusHeadway(tt_helper.TtEval):
+    """
+
+    """
     def __init__(
         self,
         paths_tt_vissim_raw_,
@@ -150,9 +153,9 @@ if __name__ == "__main__":
         veh_types_res_cls_=veh_types_res_cls,
         keep_cols_=keep_cols,
         keep_tt_segs_=keep_tt_segs,
-    )
+    ) # read_rsr_tt inherited from TtEval
     # Add travel time segment name and direction to the raw data for each simulation
     # run.
-    bus_headway_am.merge_mapper()
+    bus_headway_am.merge_mapper() # merge_mapper inherited from TtEval
     bus_headway_am.get_headway_stats()
     bus_headway_am.save_headway()

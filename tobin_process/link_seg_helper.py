@@ -30,7 +30,7 @@ class LinkSegEval:
         self.path_to_output_link_seg_fig = path_to_output_link_seg_fig_
         # Mapper file to get link names.
         self.link_seg_mapper = pd.read_excel(self.path_to_mapper_link_seg)
-        link_seg_vissim = self.read_link_seg()
+        self.link_seg_vissim = pd.DataFrame()
         self.link_seg_vissim_fil = pd.DataFrame()
         self.link_seg_vissim_fil_ord = pd.DataFrame()
 
