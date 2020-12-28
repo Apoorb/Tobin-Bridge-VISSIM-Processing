@@ -1,0 +1,47 @@
+Data Needed
+
+*._Node Results.att file:
+	$MOVEMENTEVALUATION:SIMRUN, 
+	TIMEINT,  
+	MOVEMENT,  
+	MOVEMENT\DIRECTION, 
+	MOVEMENT\FROMLINK\LEVEL, 
+	QLEN,
+	QLENMAX,
+	VEHS(ALL),
+	VEHDELAY(ALL)
+		
+*.rsr file
+	time, no, veh, veh_type, trav, delay, dist
+	
+*._Link Segment Results.att
+	$LINKEVALSEGMENTEVALUATION:SIMRUN
+	TIMEINT
+	LINKEVALSEGMENT
+	LINKEVALSEGMENT\LINK\NUMLANES
+	DENSITY(1020)
+	SPEED(1020)
+	VOLUME(1020)
+
+*.mer file
+	Measurem.
+	t(Entry)
+	t(Exit)
+	VehNo
+	Vehicle type
+	Line
+	v[mph]
+	b[ft/s2]
+	Occ
+	Pers
+	tQueue
+	VehLength[ft]
+
+*._Vehicle Network Performance Evaluation Results.att file
+	$VEHICLENETWORKPERFORMANCEMEASUREMENTEVALUATION:SIMRUN,
+	TIMEINT,
+	DELAYAVG(ALL),
+	VEHACT(ALL),
+	VEHARR(ALL),
+	DELAYLATENT,
+	DEMANDLATENT,

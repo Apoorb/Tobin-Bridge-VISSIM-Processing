@@ -247,6 +247,10 @@ if __name__ == "__main__":
         path_to_raw_data,
         "Tobin Bridge Base Model - AM Peak Period V3_Link Segment Results.att",
     )
+    path_to_output_qaqc_link = os.path.join(
+        path_to_interim_data,
+        "link_eval_qaqc.xlsx"
+    )
     path_to_output_fig = os.path.join(path_to_interim_data, "figures")
     if not os.path.exists(path_to_output_fig):
         os.mkdir(path_to_output_fig)
@@ -369,6 +373,8 @@ if __name__ == "__main__":
     link_seg_am.link_seg_vissim_fil_ord = link_seg_am.link_seg_vissim_fil_ord.assign(
         density_1020_by_ln=lambda df: df.density_1020 / df.linkevalsegment_link_numlanes
     )
+    link_seg_am.link_seg_vissim_fil_ord.to_excel(path_to_output_qaqc_link)
+
     link_seg_am.plot_heatmaps(
         plot_var="density_1020_by_ln",
         index_var="display_name",
